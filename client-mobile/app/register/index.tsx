@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity } from "react-native";
-import { Eye, EyeOff } from "lucide-react-native";
+import { Eye, EyeOff, ArrowLeft } from "lucide-react-native";
+import { useRouter } from "expo-router";
+
 import { validateEmail } from "../../src/utils/valideEmail";
 import { validatePassword } from "../../src/utils/validePassword";   
 
-interface ModalRegisterProps {
-    onClose: () => void;
-}
 
-const ModalRegister: React.FC<ModalRegisterProps> = ({ onClose }) => {
+const ModalRegister: React.FC = () => {
+    const router = useRouter();
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -26,9 +26,10 @@ const ModalRegister: React.FC<ModalRegisterProps> = ({ onClose }) => {
                 setError("Verifique os campos e tente novamente.");
             } else {
                 // Simulate successful registration
-                onClose();
+                router.replace("/login-client");
             }
         } catch (err) {
+            /* eslint-disable-next-line no-console */
             console.error("Error registering user:", err);
         }
     };
@@ -36,6 +37,15 @@ const ModalRegister: React.FC<ModalRegisterProps> = ({ onClose }) => {
     return (
         <View className="flex-1 bg-zinc-950 justify-center items-center">
             <View className="bg-zinc-950 p-5 rounded-lg w-4/5 items-center">
+                {/* Back button */}
+                <TouchableOpacity
+                    className="self-start mb-2 p-2"
+                    onPress={() => router.back()}
+                    accessibilityLabel="Voltar"
+                >
+                    <ArrowLeft size={20} color="#FFA62B" />
+                </TouchableOpacity>
+
                 <Text className="text-[#FFA62B] font-bold text-2xl mb-4">Cadastre-se</Text>
                 <TextInput
                     className="w-full p-3 border border-[#FFA62B] rounded-lg text-[#FFA62B] mb-4"
@@ -78,14 +88,11 @@ const ModalRegister: React.FC<ModalRegisterProps> = ({ onClose }) => {
                     </TouchableOpacity>
                 </View>
                 <TouchableOpacity
-                    className={`bg-zinc-950 p-3 rounded-lg w-full items-center mb-2 ${!name || !email || !password || !confirmPassword ? "opacity-50" : "bg-zinc-950 shadow-sm shadow-yellow-600"}`}
+                    className={`bg-zinc-950 p-3 rounded-lg w-full items-center mb-2 ${!name || !email || !password || !confirmPassword ? "opacity-50" : "bg-zinc-950"}`}
                     onPress={handleRegister}
                     disabled={!name || !email || !password || !confirmPassword}
                 >
                     <Text className="text-[#FFA62B] font-bold">Registrar</Text>
-                </TouchableOpacity>
-                <TouchableOpacity className="mt-2" onPress={onClose}>
-                    <Text className="text-[#FFA62B] font-bold">Fechar</Text>
                 </TouchableOpacity>
                 {error && <Text className="text-red-600 mt-2">{error}</Text>}
             </View>
