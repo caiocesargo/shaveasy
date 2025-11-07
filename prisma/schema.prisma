@@ -68,4 +68,65 @@ model Barbearia {
 // ----------------------------------------------------------------------
 // DOMÍNIO: AGENDAMENTO (Foco do Neto)
 // Neto deve adicionar os modelos Servico, Barbeiro e Agendamento aqui.
+<<<<<<< HEAD
 // ----------------------------------------------------------------------
+=======
+// ----------------------------------------------------------------------
+
+// Requisito: Gerenciamento de Serviços (Nome, Preço)
+model Servico {
+  id          String   @id @default(uuid())
+  nome        String   
+  preco       Float    
+  duracao_min Int      // Duração em minutos (Ex: 30)
+
+  // Chave do Multi-Tenancy (Obrigatório!)
+  barbearia   Barbearia @relation(fields: [barbeariaId], references: [id], onDelete: Cascade)
+  barbeariaId String
+
+  agendamentos Agendamento[]
+
+  @@map("servicos")
+}
+
+// Representa o profissional (Simplificado para o MVP)
+model Barbeiro {
+  id            String   @id @default(uuid())
+  nome          String
+  especialidade String?
+
+  // Chave do Multi-Tenancy (Obrigatório!)
+  barbearia   Barbearia @relation(fields: [barbeariaId], references: [id], onDelete: Cascade)
+  barbeariaId String
+  
+  agendamentos Agendamento[]
+
+  @@map("barbeiros")
+}
+
+// Requisito: Agendamento de Serviços
+model Agendamento {
+  id       String   @id @default(uuid())
+  dataHora DateTime // Chave para Anti-Double Booking
+  
+  // Requisito: Status (pendente, confirmado, cancelado)
+  status String @default("pendente") 
+
+  // Chave do Multi-Tenancy (Obrigatório!)
+  barbearia   Barbearia @relation(fields: [barbeariaId], references: [id], onDelete: Cascade)
+  barbeariaId String
+
+  // Relações
+  cliente   Usuario  @relation("AgendamentosDoCliente", fields: [clienteId], references: [id], onDelete: Cascade)
+  clienteId String
+  
+  barbeiro   Barbeiro @relation(fields: [barbeiroId], references: [id], onDelete: Cascade)
+  barbeiroId String
+
+  servico   Servico  @relation(fields: [servicoId], references: [id], onDelete: Cascade)
+  servicoId String
+
+  createdAt DateTime @default(now())
+  @@map("agendamentos")
+}
+>>>>>>> origin/feature/neto-models-services
