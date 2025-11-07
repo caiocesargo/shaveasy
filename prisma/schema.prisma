@@ -1,0 +1,128 @@
+// prisma/schema.prisma
+
+// Define o banco de dados (PostgreSQL) e o ORM (Prisma)
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL") // Lê a URL do seu arquivo .env
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ----------------------------------------------------------------------
+// DOMÍNIO: AUTH/BARBEARIA (Foco da Pessoa 1 - João)
+// ----------------------------------------------------------------------
+
+// Tabela 1: USUARIO
+// Requisitos: Nome, E-mail, Telefone e Senha são obrigatórios.
+model Usuario {
+  id           String    @id @default(uuid())
+  email        String    @unique // Único
+  senha_hash   String    // Salva o hash do Bcrypt
+  nome         String   
+  telefone     String   
+  
+  // Autorização e Multi-Tenancy
+  // Regra de Negócio: Barbeiros e administradores terão permissões diferentes.
+  tipo         String    @default("cliente") // 'cliente', 'admin'
+  barbeariaId  String?   // A qual barbearia pertence (se for admin/barbeiro)
+  barbearia    Barbearia? @relation(fields: [barbeariaId], references: [id], onDelete: SetNull)
+
+  createdAt    DateTime  @default(now())
+
+  // Relações que o Neto irá usar:
+  barbeariaDono Barbearia? // Barbeiro dono (relação 1:1)
+  agendamentosCliente Agendamento[] @relation("AgendamentosDoCliente")
+  
+  @@map("usuarios") 
+}
+
+// Tabela 2: BARBEARIA (O Tenant)
+// Requisitos: Configurar nome, endereço, telefone.
+model Barbearia {
+  id           String    @id @default(uuid())
+  nome         String   
+  endereco     String   
+  telefone     String   
+  
+  // Relação 1:1 com o dono (Definindo um admin)
+  dono         Usuario @relation(fields: [donoId], references: [id])
+  donoId       String  @unique // O UID do dono desta barbearia
+
+  // Configurações
+  // Regra de Negócio: Definir tempo mínimo de antecedência (1 hora).
+  tempo_min_antecedencia Int @default(60) // em minutos
+
+  // Relações que o Neto irá usar:
+  usuarios     Usuario[] // Usuários (barbeiros/admins) desta barbearia
+  servicos     Servico[]
+  barbeiros    Barbeiro[]
+  agendamentos Agendamento[]
+
+  createdAt    DateTime  @default(now())
+
+  @@map("barbearias")
+}
+
+// ----------------------------------------------------------------------
+// DOMÍNIO: AGENDAMENTO (Foco do Neto)
+// Neto deve adicionar os modelos Servico, Barbeiro e Agendamento aqui.
+// ----------------------------------------------------------------------
+
+// Requisito: Gerenciamento de Serviços (Nome, Preço)
+model Servico {
+  id          String   @id @default(uuid())
+  nome        String   
+  preco       Float    
+  duracao_min Int      // Duração em minutos (Ex: 30)
+
+  // Chave do Multi-Tenancy (Obrigatório!)
+  barbearia   Barbearia @relation(fields: [barbeariaId], references: [id], onDelete: Cascade)
+  barbeariaId String
+
+  agendamentos Agendamento[]
+
+  @@map("servicos")
+}
+
+// Representa o profissional (Simplificado para o MVP)
+model Barbeiro {
+  id            String   @id @default(uuid())
+  nome          String
+  especialidade String?
+
+  // Chave do Multi-Tenancy (Obrigatório!)
+  barbearia   Barbearia @relation(fields: [barbeariaId], references: [id], onDelete: Cascade)
+  barbeariaId String
+  
+  agendamentos Agendamento[]
+
+  @@map("barbeiros")
+}
+
+// Requisito: Agendamento de Serviços
+model Agendamento {
+  id       String   @id @default(uuid())
+  dataHora DateTime // Chave para Anti-Double Booking
+  
+  // Requisito: Status (pendente, confirmado, cancelado)
+  status String @default("pendente") 
+
+  // Chave do Multi-Tenancy (Obrigatório!)
+  barbearia   Barbearia @relation(fields: [barbeariaId], references: [id], onDelete: Cascade)
+  barbeariaId String
+
+  // Relações
+  cliente   Usuario  @relation("AgendamentosDoCliente", fields: [clienteId], references: [id], onDelete: Cascade)
+  clienteId String
+  
+  barbeiro   Barbeiro @relation(fields: [barbeiroId], references: [id], onDelete: Cascade)
+  barbeiroId String
+
+  servico   Servico  @relation(fields: [servicoId], references: [id], onDelete: Cascade)
+  servicoId String
+
+  createdAt DateTime @default(now())
+  @@map("agendamentos")
+}
