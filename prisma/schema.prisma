@@ -68,9 +68,7 @@ model Barbearia {
 // ----------------------------------------------------------------------
 // DOMÍNIO: AGENDAMENTO (Foco do Neto)
 // Neto deve adicionar os modelos Servico, Barbeiro e Agendamento aqui.
-<<<<<<< HEAD
 // ----------------------------------------------------------------------
-=======
 // ----------------------------------------------------------------------
 
 // Requisito: Gerenciamento de Serviços (Nome, Preço)
@@ -129,4 +127,3 @@ model Agendamento {
   createdAt DateTime @default(now())
   @@map("agendamentos")
 }
->>>>>>> origin/feature/neto-models-services
