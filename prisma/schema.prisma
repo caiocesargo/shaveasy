@@ -14,7 +14,7 @@ generator client {
 // DOMÍNIO: AUTH/BARBEARIA (Foco da Pessoa 1 - João)
 // ----------------------------------------------------------------------
 
-// Tabela 1: USUARIO
+// Tabela 1: USUARIO (Simplificado)
 // Requisitos: Nome, E-mail, Telefone e Senha são obrigatórios.
 model Usuario {
   id           String    @id @default(uuid())
@@ -23,22 +23,22 @@ model Usuario {
   nome         String   
   telefone     String   
   
-  // Autorização e Multi-Tenancy
-  // Regra de Negócio: Barbeiros e administradores terão permissões diferentes.
-  tipo         String    @default("cliente") // 'cliente', 'admin'
-  barbeariaId  String?   // A qual barbearia pertence (se for admin/barbeiro)
+  // Simplificado: 'cliente' ou 'admin' (admin = dono/barbeiro)
+  tipo         String    @default("cliente") 
+  
+  // A qual barbearia este admin/barbeiro pertence
+  barbeariaId  String?   
   barbearia    Barbearia? @relation(fields: [barbeariaId], references: [id], onDelete: SetNull)
 
   createdAt    DateTime  @default(now())
 
   // Relações que o Neto irá usar:
-  barbeariaDono Barbearia? // Barbeiro dono (relação 1:1)
   agendamentosCliente Agendamento[] @relation("AgendamentosDoCliente")
   
   @@map("usuarios") 
 }
 
-// Tabela 2: BARBEARIA (O Tenant)
+// Tabela 2: BARBEARIA (O Tenant - Simplificado)
 // Requisitos: Configurar nome, endereço, telefone.
 model Barbearia {
   id           String    @id @default(uuid())
@@ -46,16 +46,17 @@ model Barbearia {
   endereco     String   
   telefone     String   
   
-  // Relação 1:1 com o dono (Definindo um admin)
-  dono         Usuario @relation(fields: [donoId], references: [id])
-  donoId       String  @unique // O UID do dono desta barbearia
+  // Relação 1:1 com o dono FOI REMOVIDA para resolver a ambiguidade P1012.
+  // O "dono" agora é apenas um usuário com tipo: 'admin' nesta barbearia.
 
   // Configurações
   // Regra de Negócio: Definir tempo mínimo de antecedência (1 hora).
   tempo_min_antecedencia Int @default(60) // em minutos
 
-  // Relações que o Neto irá usar:
-  usuarios     Usuario[] // Usuários (barbeiros/admins) desta barbearia
+  // Relação 1:N (Uma barbearia tem muitos usuários admin/barbeiro)
+  usuarios     Usuario[] 
+  
+  // Relações do Neto
   servicos     Servico[]
   barbeiros    Barbeiro[]
   agendamentos Agendamento[]
@@ -67,20 +68,18 @@ model Barbearia {
 
 // ----------------------------------------------------------------------
 // DOMÍNIO: AGENDAMENTO (Foco do Neto)
-// Neto deve adicionar os modelos Servico, Barbeiro e Agendamento aqui.
-// ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
 
 // Requisito: Gerenciamento de Serviços (Nome, Preço)
 model Servico {
-  id          String   @id @default(uuid())
-  nome        String   
-  preco       Float    
-  duracao_min Int      // Duração em minutos (Ex: 30)
+  id           String    @id @default(uuid())
+  nome         String    
+  preco        Float     
+  duracao_min  Int       // Duração em minutos (Ex: 30)
 
   // Chave do Multi-Tenancy (Obrigatório!)
-  barbearia   Barbearia @relation(fields: [barbeariaId], references: [id], onDelete: Cascade)
-  barbeariaId String
+  barbearia    Barbearia @relation(fields: [barbeariaId], references: [id], onDelete: Cascade)
+  barbeariaId  String
 
   agendamentos Agendamento[]
 
@@ -89,41 +88,41 @@ model Servico {
 
 // Representa o profissional (Simplificado para o MVP)
 model Barbeiro {
-  id            String   @id @default(uuid())
+  id            String    @id @default(uuid())
   nome          String
   especialidade String?
 
   // Chave do Multi-Tenancy (Obrigatório!)
-  barbearia   Barbearia @relation(fields: [barbeariaId], references: [id], onDelete: Cascade)
-  barbeariaId String
+  barbearia     Barbearia @relation(fields: [barbeariaId], references: [id], onDelete: Cascade)
+  barbeariaId   String
   
-  agendamentos Agendamento[]
+  agendamentos  Agendamento[]
 
   @@map("barbeiros")
 }
 
 // Requisito: Agendamento de Serviços
 model Agendamento {
-  id       String   @id @default(uuid())
-  dataHora DateTime // Chave para Anti-Double Booking
+  id           String    @id @default(uuid())
+  dataHora     DateTime  // Chave para Anti-Double Booking
   
-  // Requisito: Status (pendente, confirmado, cancelado)
-  status String @default("pendente") 
+  // Des-scoping: Status 'pendente' removido. Agendamento é 'confirmado' direto.
+  status       String    @default("confirmado") 
 
   // Chave do Multi-Tenancy (Obrigatório!)
-  barbearia   Barbearia @relation(fields: [barbeariaId], references: [id], onDelete: Cascade)
-  barbeariaId String
+  barbearia    Barbearia @relation(fields: [barbeariaId], references: [id], onDelete: Cascade)
+  barbeariaId  String
 
   // Relações
-  cliente   Usuario  @relation("AgendamentosDoCliente", fields: [clienteId], references: [id], onDelete: Cascade)
-  clienteId String
+  cliente      Usuario  @relation("AgendamentosDoCliente", fields: [clienteId], references: [id], onDelete: Cascade)
+  clienteId    String
   
-  barbeiro   Barbeiro @relation(fields: [barbeiroId], references: [id], onDelete: Cascade)
-  barbeiroId String
+  barbeiro     Barbeiro @relation(fields: [barbeiroId], references: [id], onDelete: Cascade)
+  barbeiroId   String
 
-  servico   Servico  @relation(fields: [servicoId], references: [id], onDelete: Cascade)
-  servicoId String
+  servico      Servico  @relation(fields: [servicoId], references: [id], onDelete: Cascade)
+  servicoId    String
 
-  createdAt DateTime @default(now())
+  createdAt    DateTime @default(now())
   @@map("agendamentos")
 }

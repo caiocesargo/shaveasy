@@ -1,13 +1,16 @@
 // src/domain/auth/auth.routes.js
 
 import { Router } from 'express';
-import AuthController from './auth.controller.js';
+// O nome da variável importada é 'authControllerInstance' para ficar mais claro
+import authControllerInstance from './auth.controller.js';
 
 const router = Router();
-// Instancia o Controller (Baseado em POO)
-const authController = new AuthController();
 
-// Define a rota POST /auth/register
+// NÃO usamos 'new' aqui. Usamos a instância que já foi importada.
+// Esta é a correção do bug.
+const authController = authControllerInstance;
+
+// As rotas agora usam os métodos da instância importada
 router.post('/register', authController.register); 
 
 export default router;
