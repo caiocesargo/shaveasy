@@ -8,8 +8,16 @@
       "@assets": ["./src/assets"],
       "@contexts": ["./src/contexts"],
       "@icons": ["./src/assets/icons"],
-      "@styles": ["./src/styles/theme"],
+      "@styles": ["./src/styles/theme"]
     },
     "types": ["@types/styled-components-react-native"]
-  }
+  },
+  
+  "exclude": [
+    "node_modules",
+    "prisma", 
+    "src/domain", 
+    "src/config", 
+    "src/server.js" 
+  ]
 }
