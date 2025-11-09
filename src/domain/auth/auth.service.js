@@ -1,7 +1,9 @@
 // src/domain/auth/auth.service.js
 
 import bcrypt from 'bcryptjs';
-import { prisma } from '../../config/prisma.js'; // Importa a instância do Prisma
+import { prisma } from '../../config/prisma.js'; 
+import jwt from 'jsonwevtoken';
+
 
 class AuthService {
 
@@ -39,6 +41,34 @@ class AuthService {
 
         return novoUsuario;
     }
+    async fazerLogin(email, password) {
+        const usuario = await prisma.usuario.findUnique({
+            where: { email: email },
+        });
+
+        if (!usuario) {
+            throw new Error('Credenciais inválidas.')
+        }
+
+        const senhaValida = await bcrypt.compare(password, usuario.senha_hash);
+        if (!senhaValida) {
+            throw new Error('Credenciais inválidas');
+        }
+        const payload = {
+            userId: usuario.id,
+            tipo: usuario.tipo,
+            barbeariaId: usuario.barbeariaId || null
+        };
+        const token = jwt.sign(
+            payload, 
+            process.env.JWT_SECRET,
+            { expiresIn: '1d' }
+        );
+
+        return { token, user: payload };
+    }
 }
+
+
 
 export default new AuthService();

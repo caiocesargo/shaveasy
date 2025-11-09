@@ -30,6 +30,7 @@ class AuthController {
             return res.status(500).json({ error: 'Erro interno ao tentar cadastrar usuário.' });
         }
     }
+    
 }
 
 export default new AuthController();
