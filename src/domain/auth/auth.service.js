@@ -2,7 +2,7 @@
 
 import bcrypt from 'bcryptjs';
 import { prisma } from '../../config/prisma.js'; 
-import jwt from 'jsonwevtoken';
+import jwt from 'jsonwebtoken';
 
 
 class AuthService {
@@ -66,6 +66,26 @@ class AuthService {
         );
 
         return { token, user: payload };
+    }
+
+    async getPerfil(userId) {
+        const usuario = await prisma.usuario.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                nome: true,
+                email: true,
+                telefone: true,
+                tipo: true,
+                barbeariaId: true
+            }
+        });
+        
+        if (!usuario){
+            throw new Error('Usuário não encontrado.');
+        }
+
+        return usuario;
     }
 }
 
