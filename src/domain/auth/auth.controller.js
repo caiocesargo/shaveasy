@@ -70,6 +70,19 @@ class AuthController {
         console.error('Erro ao buscar perfil.', error);
         return res.status(500).json({error: 'Erro interno ao buscar perfil.'});
     }
+
+    async meusAgendamentos(req, res) {
+        try {
+            const userIdCliente = req.user.userId;
+            const agendamentos = await AuthService.getMeusAgendamentos(userIdCliente);
+
+            return res.status(200).json(agendamentos);
+
+        } catch (error) {
+            console.error('Erro ao buscar agendamentos', error);
+            return res.status(500).json({ error: 'Erro interno ao buscar agendamentos.' });
+        }
+    }
     
 }
 

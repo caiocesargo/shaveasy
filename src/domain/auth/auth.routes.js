@@ -12,4 +12,6 @@ router.post('/login', authController.login)
 
 router.get('/perfil', verifyJWT, authController.perfil);
 
+router.get('/meus-agendamentos', verifyJWT, authController.meusAgendamentos);
+
 export default router;

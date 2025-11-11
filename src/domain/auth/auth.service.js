@@ -87,6 +87,30 @@ class AuthService {
 
         return usuario;
     }
+
+    async getMeusAgendamentos(userIdCliente) {
+        const agendamentos = await prisma.agendamento.findMany({
+            where: {
+            clienteId: userIdCliente,
+            dataHora: {
+                gte: new Date ()
+            }
+        },
+        orderBy: {
+            dataHora: 'asc'
+        },
+
+        include: {
+            servico: {
+                select: { nome: true, preco: true, duracao_min: true }
+            },
+            barbeiro: {
+                select: { nome: true }
+            }
+        }
+        });
+        return agendamentos;
+    }
 }
 
 
