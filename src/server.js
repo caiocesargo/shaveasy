@@ -2,9 +2,8 @@
 import 'dotenv/config'; // Carrega o .env
 import express from 'express';
 import cors from 'cors'; 
-
-// Importar as rotas
 import authRoutes from './domain/auth/auth.routes.js'; //  IMPORTA SUAS ROTAS
+import barbeariaRoutes from './domain/barbearia/barbearia.routes.js';
 
 const app = express();
 
@@ -14,6 +13,7 @@ app.use(express.json()); // Permite que o Express leia JSON no body
 
 // Rotas
 app.use('/auth', authRoutes); // CONECTA SUAS ROTAS (ex: /auth/register)
+app.use('/barbearias', barbeariaRoutes);
 
 // Iniciar o Servidor
 const PORT = process.env.PORT || 3333;
