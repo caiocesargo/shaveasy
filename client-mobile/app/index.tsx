@@ -20,6 +20,7 @@ const App: React.FC = () => {
         <View className="flex-row space-x-4 justify-between w-72 gap-4">
           <TouchableOpacity
             className="px-4 py-4 rounded-lg bg-black"
+            onPress={() => router.push("/login-barber")}
           >
             <View className="flex-row items-center">
               <Text className="text-[#FFA62B] font-bold">Sou Barbeiro</Text>
