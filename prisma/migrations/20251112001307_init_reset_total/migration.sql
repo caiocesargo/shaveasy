@@ -49,6 +49,7 @@ CREATE TABLE "barbeiros" (
 CREATE TABLE "agendamentos" (
     "id" TEXT NOT NULL,
     "dataHora" TIMESTAMP(3) NOT NULL,
+    "dataHoraFim" TIMESTAMP(3) NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'confirmado',
     "barbeariaId" TEXT NOT NULL,
     "clienteId" TEXT NOT NULL,
