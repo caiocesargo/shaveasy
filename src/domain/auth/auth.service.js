@@ -1,7 +1,7 @@
 // src/domain/auth/auth.service.js
 
 import bcrypt from 'bcryptjs';
-import { prisma } from '../../config/prisma.js'; 
+import prisma from '../../config/prisma.js'; // Linha Nova (Correta)
 import jwt from 'jsonwebtoken';
 
 

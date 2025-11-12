@@ -1,5 +1,5 @@
 // src/domain/agendamento/agendamento.service.js
-import { prisma } from '../../config/prisma.js'; // Importa o Prisma
+import prisma from '../../config/prisma.js'; // Linha Nova (Correta)
 
 class AgendamentoService {
 

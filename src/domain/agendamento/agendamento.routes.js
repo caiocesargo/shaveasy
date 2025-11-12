@@ -1,16 +1,27 @@
-// src/domain/agendamento/agendamento.routes.js
 import { Router } from 'express';
-import AgendamentoController from './agendamento.controller.js';
+// CORREÇÃO: Importamos o controller com o nome 'agendamentoController' em minúsculo,
+// conforme o que está sendo exportado como default no controller.
+import agendamentoController from './agendamento.controller.js'; 
 import { verifyJWT } from '../../shared/middlewares/verifyJWT.js'; 
 
 const router = Router();
 
-// --- Rotas de Serviços (Concluídas) ---
-router.post('/servicos', verifyJWT, AgendamentoController.criarServico);
-router.get('/servicos', verifyJWT, AgendamentoController.listarServicos);
+// PREFIXO: /agendamento (Definido no server.js)
 
-// --- Rota de Agendamento (NOVA E PROTEGIDA) ---
-// (Estória: "Agendamento de Serviços") [cite:`uploaded:Estórias de Usuário .docx`, `uploaded:IMG-20251110-WA0025.jpg-22e80f9c-0ed0-4d52-8427-ff31a2e447a6`]
-router.post('/agendamentos', verifyJWT, AgendamentoController.criarAgendamento);
+// [C]REATE: Cria um novo agendamento. Rota completa: POST /agendamento/criar
+// Usa agendamentoController.create, que foi corrigido para existir no controller.
+router.post(
+    '/criar',
+    verifyJWT,
+    agendamentoController.create
+);
+
+// [R]EAD: Lista agendamentos do cliente logado. Rota completa: GET /agendamento/meus
+// Usa agendamentoController.list, que foi corrigido para existir no controller.
+router.get(
+    '/meus', 
+    verifyJWT,
+    agendamentoController.list
+);
 
 export default router;
