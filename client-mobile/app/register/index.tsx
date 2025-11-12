@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react-native";
 import { useRouter } from "expo-router";
+import api from "../../src/service/api";
 
 import { validateEmail } from "../../src/utils/valideEmail";
 import { validatePassword } from "../../src/utils/validePassword";   
@@ -11,6 +12,7 @@ const ModalRegister: React.FC = () => {
     const router = useRouter();
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
+    const [telefone, setTelefone] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState("");
@@ -24,13 +26,21 @@ const ModalRegister: React.FC = () => {
         try {
             if (!validEmail || !validPassword || password !== confirmPassword) {
                 setError("Verifique os campos e tente novamente.");
-            } else {
-                // Simulate successful registration
-                router.replace("/login-client");
+                return;
             }
-        } catch (err) {
-            /* eslint-disable-next-line no-console */
-            console.error("Error registering user:", err);
+            const response = await api.post("/auth/register", {
+                nome: name,
+                email,
+                telefone,
+                password,
+            });
+            if (response.status === 201) {
+                router.replace("/login-client");
+            } else {
+                setError("Erro ao registrar. Tente novamente mais tarde.");
+            }
+        } catch {
+            setError("Erro ao registrar. Tente novamente mais tarde.");
         }
     };
 
@@ -60,6 +70,13 @@ const ModalRegister: React.FC = () => {
                     placeholderTextColor="#FFA62B"
                     value={email}
                     onChangeText={setEmail}
+                />
+                <TextInput
+                    className="w-full p-3 border border-[#FFA62B] rounded-lg text-[#FFA62B] mb-4"
+                    placeholder="Telefone"
+                    placeholderTextColor="#FFA62B"
+                    value={telefone}
+                    onChangeText={setTelefone}
                 />
                 <View className="w-full flex-row items-center border border-[#FFA62B] rounded-lg mb-4">
                     <TextInput

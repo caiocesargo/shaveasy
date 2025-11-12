@@ -11,4 +11,5 @@ router.post(
     barbeariaController.criarBarbearia
 );
 
+
 export default router;

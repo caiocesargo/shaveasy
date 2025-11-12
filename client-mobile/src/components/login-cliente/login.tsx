@@ -23,7 +23,6 @@ export default function Login() {
     try {
       if (!valid || !validPassword) {
         /* eslint-disable-next-line no-console */
-        console.log("Credenciais inválidas");
         setError("Credenciais inválidas");
       } else {
         router.push("/initial");
@@ -31,7 +30,6 @@ export default function Login() {
     } catch (err) {
       setError("Erro ao fazer login");
       /* eslint-disable-next-line no-console */
-      console.log("Erro na requisição", err);
     }
   };
 
