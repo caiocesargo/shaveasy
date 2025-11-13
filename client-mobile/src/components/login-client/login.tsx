@@ -18,7 +18,6 @@ export default function Login() {
   const isLoginDisabled = email === "" || senha === "";
 
   const handlePressLogin = async () => {
-  // redireciona diretamente para a homepage (temporário, até integrar o backend)
   router.push("/homepage");
 };
 

@@ -24,7 +24,6 @@ export default function LoginBarbeiro() {
       if (!valid || !validPassword) {
         setError("Credenciais inválidas");
       } else {
-        // Redireciona para a tela inicial do barbeiro
         router.push("/barbeiro/home");
       }
     } catch (err) {
