@@ -14,13 +14,11 @@ export default function HomePage() {
   ];
 
   const handleSchedule = (serviceName: string) => {
-    // futuramente podemos redirecionar para a tela de agendamento
     console.log(`Agendar: ${serviceName}`);
   };
 
   return (
     <View className="flex-1 bg-zinc-950">
-      {/* Navbar fixa */}
       <View className="flex-row justify-between items-center px-6 py-4 bg-zinc-900 border-b border-zinc-800">
         <Text className="text-white text-lg font-semibold">Barbearia Shaveasy</Text>
         <View className="flex-row space-x-6">
@@ -33,13 +31,11 @@ export default function HomePage() {
         </View>
       </View>
 
-      {/* Conteúdo rolável */}
       <ScrollView
         contentContainerStyle={{ paddingBottom: 40 }}
         className="px-6 pt-6"
         showsVerticalScrollIndicator={false}
       >
-        {/* Informações da barbearia */}
         <View className="mb-6">
           <Text className="text-2xl font-semibold text-white mb-2">
             Barbearia Shaveasy
@@ -57,7 +53,6 @@ export default function HomePage() {
           </Text>
         </View>
 
-        {/* Lista de serviços */}
         <View className="mt-4">
           <Text className="text-white text-xl font-semibold mb-4">
             Serviços disponíveis
