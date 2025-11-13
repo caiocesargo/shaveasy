@@ -1,67 +1,95 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, FlatList, ScrollView } from 'react-native';
-import { useRouter } from 'expo-router';
+import React from "react";
+import { View, Text, TouchableOpacity, ScrollView, FlatList } from "react-native";
+import { useRouter } from "expo-router";
 
-export default function HomePageBarber() {
+export default function BarberHome() {
   const router = useRouter();
 
-  // Simulação de agendamentos
+  // Simulação de agendamentos do barbeiro
   const agendamentos = [
-    { id: '1', cliente: 'João Silva', servico: 'Corte de cabelo', horario: '09:00' },
-    { id: '2', cliente: 'Pedro Lima', servico: 'Barba completa', horario: '10:30' },
-    { id: '3', cliente: 'Lucas Souza', servico: 'Corte + Barba', horario: '13:00' },
+    { id: "1", cliente: "Dionésio Batalha", horario: "09:00", servico: "Corte de cabelo", status: "Confirmado" },
+    { id: "2", cliente: "Richardson Tiburcio", horario: "10:30", servico: "Barba completa", status: "Cancelado" },
+    { id: "3", cliente: "Clóvis Rocha", horario: "13:00", servico: "Corte + Barba", status: "Confirmado" },
   ];
 
   return (
-    <ScrollView className="flex-1 bg-white p-5">
-      <Text className="text-2xl font-bold mb-2">Bem-vindo, Barbeiro!</Text>
-      <Text className="text-gray-600 mb-6">Gerencie seus horários e atendimentos.</Text>
+    <View className="flex-1 bg-zinc-950">
+      <ScrollView contentContainerStyle={{ padding: 20 }}>
+        {/* Título */}
+        <Text className="text-3xl font-bold text-[#FFA62B] mb-4 text-center">
+          Painel do Barbeiro
+        </Text>
 
-      {/* Lista de agendamentos */}
-      <Text className="text-lg font-semibold mb-2">Agendamentos de hoje</Text>
-      <FlatList
-        data={agendamentos}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View className="bg-gray-100 p-4 mb-3 rounded-lg">
-            <Text className="text-base font-semibold">{item.cliente}</Text>
-            <Text className="text-sm text-gray-700">{item.servico}</Text>
-            <Text className="text-sm text-gray-500">{item.horario}</Text>
-          </View>
-        )}
-      />
+        {/* Subtítulo */}
+        <Text className="text-base text-gray-300 text-center mb-6">
+          Gerencie seus horários e serviços com facilidade.
+        </Text>
 
-      {/* Botões de navegação */}
-      <Text className="text-lg font-semibold mt-6 mb-2">Ações rápidas</Text>
-      <View className="flex-row flex-wrap justify-between">
-        <TouchableOpacity
-          className="bg-black p-4 rounded-lg w-[48%] mb-3"
-          onPress={() => router.push('/barbeiro/perfil')}
-        >
-          <Text className="text-white text-center font-semibold">Perfil</Text>
-        </TouchableOpacity>
+        {/* Seção de agendamentos */}
+        <Text className="text-xl font-bold text-[#FFA62B] mb-3">
+          Próximos Agendamentos
+        </Text>
 
-        <TouchableOpacity
-          className="bg-black p-4 rounded-lg w-[48%] mb-3"
-          onPress={() => router.push('/barbeiro/clientes')}
-        >
-          <Text className="text-white text-center font-semibold">Clientes</Text>
-        </TouchableOpacity>
+        <FlatList
+          data={agendamentos}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <View className="bg-[#1F1F1F] rounded-xl p-4 mb-3 border border-[#FFA62B]">
+              <Text className="text-[#FFA62B] font-bold text-lg">{item.cliente}</Text>
+              <Text className="text-gray-300">🕒 {item.horario}</Text>
+              <Text className="text-gray-300">💈 {item.servico}</Text>
+              <Text
+                className={`font-bold mt-1 ${
+                  item.status === "Confirmado"
+                    ? "text-green-400"
+                    : "text-red-500"
+                }`}
+              >
+                {item.status}
+              </Text>
+            </View>
+          )}
+        />
 
-        <TouchableOpacity
-          className="bg-black p-4 rounded-lg w-[48%] mb-3"
-          onPress={() => router.push('/barbeiro/servicos')}
-        >
-          <Text className="text-white text-center font-semibold">Serviços</Text>
-        </TouchableOpacity>
+        {/* Botões principais */}
+        <View className="mt-6 space-y-4">
+          <TouchableOpacity
+            className="bg-[#FFA62B] py-4 rounded-xl"
+            onPress={() => router.push("/barbeiro/agenda")}
+          >
+            <Text className="text-black text-center font-bold text-lg">
+              📅 Ver Agenda Completa
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          className="bg-black p-4 rounded-lg w-[48%]"
-          onPress={() => router.push('/barbeiro/agenda')}
-        >
-          <Text className="text-white text-center font-semibold">Agenda</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+          <TouchableOpacity
+            className="bg-[#FFA62B] py-4 rounded-xl"
+            onPress={() => router.push("/barbeiro/servicos")}
+          >
+            <Text className="text-black text-center font-bold text-lg">
+              ✂️ Gerenciar Serviços
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            className="bg-[#FFA62B] py-4 rounded-xl"
+            onPress={() => router.push("/barbeiro/clientes")}
+          >
+            <Text className="text-black text-center font-bold text-lg">
+              👥 Meus Clientes
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            className="bg-[#FFA62B] py-4 rounded-xl"
+            onPress={() => router.push("/barbeiro/perfil")}
+          >
+            <Text className="text-black text-center font-bold text-lg">
+              ⚙️ Perfil / Configurações
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
