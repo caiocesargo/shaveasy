@@ -2,36 +2,40 @@ import React, { useState } from "react";
 import { useRouter } from "expo-router";
 import { EyeOff, Eye } from "lucide-react-native";
 import { View, Text, TextInput, TouchableOpacity } from "react-native";
-import { validateEmail } from "../../utils/valideEmail";
-import { validatePassword } from "../../utils/validePassword";
+// import { validateEmail } from "../../utils/valideEmail";
+// import { validatePassword } from "../../utils/validePassword";
 
 export default function LoginBarbeiro() {
   const router = useRouter();
-  const [error, setError] = useState("");
+  // const [error, setError] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [senhaVisivel, setSenhaVisivel] = useState(false);
 
-  const { valid } = validateEmail(email);
-  const { valid: validPassword } = validatePassword(senha);
+  // const { valid } = validateEmail(email);
+  // const { valid: validPassword } = validatePassword(senha);
 
   const isLoginDisabled = email === "" || senha === "";
 
   const handlePressLogin = async () => {
-    if (isLoginDisabled) return;
+  router.push("/homepagebarber");
+};
 
-    try {
-      if (!valid || !validPassword) {
-        setError("Credenciais inválidas");
-      } else {
-        // Redireciona para a tela inicial do barbeiro
-        router.push("/barbeiro/home");
-      }
-    } catch (err) {
-      setError("Erro ao fazer login");
-      console.log("Erro na requisição", err);
-    }
-  };
+  // const handlePressLogin = async () => {
+  //   if (isLoginDisabled) return;
+
+  //   try {
+  //     if (!valid || !validPassword) {
+  //       setError("Credenciais inválidas");
+  //     } else {
+  //       // Redireciona para a tela inicial do barbeiro
+  //       router.push("/barbeiro/home");
+  //     }
+  //   } catch (err) {
+  //     setError("Erro ao fazer login");
+  //     console.log("Erro na requisição", err);
+  //   }
+  // };
 
   return (
     <View className="flex-1 bg-zinc-900">
@@ -74,7 +78,7 @@ export default function LoginBarbeiro() {
           </TouchableOpacity>
         </View>
 
-        {error !== "" && <Text className="text-red-500 mb-4">{error}</Text>}
+        {/* {error !== "" && <Text className="text-red-500 mb-4">{error}</Text>} */}
 
         <View className="flex-row space-x-4 justify-between w-72 ">
           <TouchableOpacity
