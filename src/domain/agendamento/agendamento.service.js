@@ -1,5 +1,5 @@
 // src/domain/agendamento/agendamento.service.js
-import prisma from '../../config/prisma.js'; // Linha Nova (Correta)
+import prisma from '../../config/prisma.js'; 
 
 class AgendamentoService {
 
@@ -28,6 +28,7 @@ class AgendamentoService {
         }
     }
 
+    // Usado pelo Admin/Barbeiro e pelo Cliente (rota corrigida)
     async listarServicos(barbeariaId) {
         const servicos = await prisma.servico.findMany({
             where: {
@@ -38,46 +39,43 @@ class AgendamentoService {
     }
 
     // =======================================================
-    // || NOVA FUNÇÃO (COM A LÓGICA CORRIGIDA) ||
+    // || Agendamento e Anti-Double Booking (Concluído) ||
     // =======================================================
+
     /**
      * Cria um novo agendamento, validando o Anti-Double Booking.
      * (Estória: "Agendamento de Serviços")
      */
-    async criarAgendamento(dados, clienteId) { // <-- CORREÇÃO: Removido barbeariaId daqui
+    async criarAgendamento(dados, clienteId) { 
         const { servicoId, barbeiroId, dataHora } = dados;
 
-        // 1. Buscar o serviço E O SEU barbeariaId
+        // 1. Buscar o serviço E O SEU barbeariaId (para Multi-Tenancy)
         const servico = await prisma.servico.findUnique({
             where: { id: servicoId },
-            select: { duracao_min: true, barbeariaId: true } // <-- OBTÉM O ID DA BARBEARIA AQUI
+            select: { duracao_min: true, barbeariaId: true } 
         });
 
         if (!servico) {
             throw new Error('Serviço não encontrado.');
         }
 
-        // Este é o ID correto
         const barbeariaIdCorreto = servico.barbeariaId;
 
         const dataHoraInicio = new Date(dataHora);
-        // Adiciona os minutos de duração do serviço à hora de início
         const dataHoraFim = new Date(dataHoraInicio.getTime() + servico.duracao_min * 60000); 
 
-        // 2. LÓGICA ANTI-DOUBLE BOOKING (Inalterada)
-        // Regra: "O sistema deve impedir conflitos de horários"
+        // 2. LÓGICA ANTI-DOUBLE BOOKING
         const conflitos = await prisma.agendamento.findMany({
             where: {
-                barbeariaId: barbeiroId, // Apenas daquele barbeiro
+                barbeiroId: barbeiroId, // Apenas daquele barbeiro
                 AND: [
-                    { dataHora: { lt: dataHoraFim } },    // O início (existente) é ANTES do fim (novo)
-                    { dataHoraFim: { gt: dataHoraInicio } } // O fim (existente) é DEPOIS do início (novo)
+                    { dataHora: { lt: dataHoraFim } },    
+                    { dataHoraFim: { gt: dataHoraInicio } } 
                 ]
             }
         });
 
         if (conflitos.length > 0) {
-            // Se encontrou conflitos, bloqueia o agendamento
             throw new Error('Horário indisponível. Já existe um agendamento neste período.');
         }
 
@@ -85,10 +83,10 @@ class AgendamentoService {
         const novoAgendamento = await prisma.agendamento.create({
             data: {
                 dataHora: dataHoraInicio,
-                dataHoraFim: dataHoraFim, // Salva a hora de término
+                dataHoraFim: dataHoraFim, 
                 status: 'confirmado',     
                 cliente: { connect: { id: clienteId } },
-                barbearia: { connect: { id: barbeariaIdCorreto } }, // <-- USA O ID CORRETO
+                barbearia: { connect: { id: barbeariaIdCorreto } }, 
                 barbeiro: { connect: { id: barbeiroId } },
                 servico: { connect: { id: servicoId } },
             }
@@ -97,7 +95,90 @@ class AgendamentoService {
         return novoAgendamento;
     }
 
-    // A rota de debug (criarBarbeariaTeste) foi removida pois o João criou o POST /barbearias.
+    /**
+     * Lista agendamentos do cliente.
+     * (Estória: "Visualização de Agendamentos (Cliente)")
+     */
+    async listarAgendamentos(clienteId) {
+        const agendamentos = await prisma.agendamento.findMany({
+            where: {
+                clienteId: clienteId
+            },
+            include: {
+                barbeiro: { select: { nome: true } },
+                servico: { select: { nome: true } },
+                barbearia: { select: { nome: true } }
+            },
+            orderBy: {
+                dataHora: 'desc' 
+            }
+        });
+        return agendamentos;
+    }
+
+
+    // =======================================================
+    // || NOVO: Estória 8 (Agenda do Barbeiro) ||
+    // =======================================================
+    
+    /**
+     * Lista todos os agendamentos futuros para uma barbearia específica.
+     * (Estória: "Agenda do Barbeiro" - Visualização)
+     */
+    async obterAgendaDaBarbearia(barbeariaId) { 
+        const dataAtual = new Date();
+        
+        const agenda = await prisma.agendamento.findMany({
+            where: {
+                barbeariaId: barbeariaId,
+                dataHora: {
+                    gte: dataAtual 
+                }
+            },
+            include: {
+                cliente: { select: { nome: true, telefone: true } },
+                barbeiro: { select: { nome: true } },
+                servico: { select: { nome: true, duracao_min: true } }
+            },
+            orderBy: {
+                dataHora: 'asc' 
+            }
+        });
+        return agenda;
+    }
+
+    /**
+     * Cancela um agendamento com validação de autorização.
+     * (Estória: "Agenda do Barbeiro" - Rota para Cancelar)
+     */
+    async cancelar(agendamentoId, userId, barbeariaIdUsuario, tipoUsuario) { 
+        
+        const agendamento = await prisma.agendamento.findUnique({
+            where: { id: agendamentoId },
+        });
+
+        if (!agendamento) {
+            throw new Error('Agendamento não encontrado.');
+        }
+        
+        // 1. Lógica de Autorização (Cliente ou Admin/Barbeiro da Barbeira correta)
+        const isClient = agendamento.clienteId === userId;
+        const isAdminOrBarbeiro = tipoUsuario !== 'cliente' && agendamento.barbeariaId === barbeariaIdUsuario;
+
+        if (!isClient && !isAdminOrBarbeiro) {
+            throw new Error('Usuário não autorizado a cancelar este agendamento.');
+        }
+
+        // 2. Executar Cancelamento
+        const agendamentoCancelado = await prisma.agendamento.update({
+            where: { id: agendamentoId },
+            data: {
+                status: 'cancelado' 
+            }
+        });
+
+        return agendamentoCancelado;
+    }
 }
 
 export default new AgendamentoService();
