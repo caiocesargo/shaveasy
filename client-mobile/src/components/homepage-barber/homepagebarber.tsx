@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView, FlatList } from "react-native";
-import { useRouter } from "expo-router";
+import  {useRouter}  from "expo-router";
 import FullScheduleModal from "./fullschedulemodal";
 import ServiceManagementModal from "./servicemanagementmodal";
 import  ClientsModal from "./clientsmodal";
+import ProfileSettingsModal from "./profilesettingsmodal";
+
 
 
 
@@ -13,6 +15,8 @@ export default function BarberHome() {
   const [openAgenda, setOpenAgenda] = useState(false);
   const [openServices, setOpenServices] = useState(false);
   const [openClients, setOpenClients] = useState(false);
+  const [openProfile, setOpenProfile] = useState(false);
+
 
 
 
@@ -89,7 +93,8 @@ export default function BarberHome() {
 
           <TouchableOpacity
             className="bg-[#FFA62B] py-4 rounded-xl"
-            onPress={() => router.push("/barbeiro/perfil")}
+            onPress={() => setOpenProfile(true)}
+            
           >
             <Text className="text-black text-center font-bold text-lg">
               Perfil / Configurações
@@ -104,7 +109,7 @@ export default function BarberHome() {
         <ServiceManagementModal
   visible={openServices}onClose={() => setOpenServices(false)}/>
   <ClientsModal visible={openClients} onClose={() => setOpenClients(false)} />
-
+  <ProfileSettingsModal visible={openProfile} onClose={() => setOpenProfile(false)} /> 
     </View>
     
   );

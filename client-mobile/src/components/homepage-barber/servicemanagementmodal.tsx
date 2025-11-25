@@ -10,7 +10,7 @@ export default function ServiceManagementModal({ visible, onClose }: ServiceMana
   if (!visible) return null;
 
   const services = [
-    { id: "1", nome: "Corte de Cabelo", preco: "R$ 25,00", tempo: "30 min" },
+    { id: "1", nome: "Corte Simples", preco: "R$ 25,00", tempo: "30 min" },
     { id: "2", nome: "Barba Completa", preco: "R$ 20,00", tempo: "25 min" },
     { id: "3", nome: "Corte + Barba", preco: "R$ 35,00", tempo: "45 min" },
   ];
