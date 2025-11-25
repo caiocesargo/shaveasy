@@ -2,11 +2,15 @@ import React, { useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView, FlatList } from "react-native";
 import { useRouter } from "expo-router";
 import FullScheduleModal from "./fullschedulemodal";
+import ServiceManagementModal from "./servicemanagementmodal";
+
 
 
 export default function BarberHome() {
   const router = useRouter();
   const [openAgenda, setOpenAgenda] = useState(false);
+  const [openServices, setOpenServices] = useState(false);
+
 
   const agendamentos = [
     { id: "1", cliente: "Dionésio Batalha", horario: "09:00", servico: "Corte de cabelo", status: "Confirmado" },
@@ -62,7 +66,8 @@ export default function BarberHome() {
 
           <TouchableOpacity
             className="bg-[#FFA62B] py-4 rounded-xl"
-            onPress={() => router.push("/barbeiro/servicos")}
+            onPress={() => setOpenServices(true)}
+
           >
             <Text className="text-black text-center font-bold text-lg">
               Gerenciar Serviços
@@ -92,6 +97,9 @@ export default function BarberHome() {
       </ScrollView>
 
       <FullScheduleModal visible={openAgenda} onClose={() => setOpenAgenda(false)} />
+        <ServiceManagementModal
+  visible={openServices}onClose={() => setOpenServices(false)}/>
     </View>
+    
   );
 }
