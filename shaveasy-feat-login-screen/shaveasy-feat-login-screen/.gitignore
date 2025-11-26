@@ -1,0 +1,19 @@
+# DEPENDÊNCIAS DE SISTEMA
+node_modules
+.env
+
+# PASTAS DE ARTEFATOS DO PRISMA
+/prisma/migrations
+/prisma/dev.db
+
+# PASTAS DE ARTEFATOS DO FRONTEND (EXPO/REACT NATIVE)
+.expo/
+.vscode/
+temp/
+# Arquivos de cache e logs
+*.log
+npm-debug.log*
+
+# PASTAS DE BUILD
+build
+dist
