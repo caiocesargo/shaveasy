@@ -46,7 +46,10 @@ export default function BarberHome() {
           data={agendamentos}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <View className="bg-[#1F1F1F] rounded-xl p-4 mb-3 border border-[#FFA62B]">
+            <TouchableOpacity
+              className="bg-[#1F1F1F] rounded-xl p-4 mb-3 border border-[#FFA62B]"
+              onPress={() => router.push(`/agendamento/${item.id}`)}
+            >
               <Text className="text-[#FFA62B] font-bold text-lg">{item.cliente}</Text>
               <Text className="text-gray-300">{item.horario}</Text>
               <Text className="text-gray-300">{item.servico}</Text>
@@ -57,7 +60,7 @@ export default function BarberHome() {
               >
                 {item.status}
               </Text>
-            </View>
+            </TouchableOpacity>
           )}
         />
 
