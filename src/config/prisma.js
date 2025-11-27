@@ -1,5 +1,6 @@
-// src/config/prisma.js
 import { PrismaClient } from '@prisma/client';
 
-// Instância única do Prisma Client
-export const prisma = new PrismaClient();
+const prisma = new PrismaClient();
+
+// O export default garante que 'import prisma from ...' funcione corretamente
+export default prisma;
