@@ -1,9 +1,24 @@
-import React from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Modal,
+} from "react-native";
 import { useRouter } from "expo-router";
 
 export default function HomePage() {
   const router = useRouter();
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedService, setSelectedService] = useState<string | null>(null);
+  const [availableSlots] = useState([
+    { day: "Terça-feira", time: "09:00" },
+    { day: "Terça-feira", time: "10:00" },
+    { day: "Quarta-feira", time: "15:00" },
+    { day: "Quinta-feira", time: "14:00" },
+  ]);
 
   const services = [
     { id: 1, name: "Corte Simples", price: "R$ 25,00", duration: "40 min" },
@@ -12,13 +27,21 @@ export default function HomePage() {
   ];
 
   const handleSchedule = (serviceName: string) => {
-    console.log(`Agendar: ${serviceName}`);
+    setSelectedService(serviceName);
+    setModalVisible(true);
+  };
+
+  const handleSlotSelect = (slot: { day: string; time: string }) => {
+    console.log(`Agendou ${selectedService} para ${slot.day} às ${slot.time}`);
+    setModalVisible(false);
   };
 
   return (
     <View className="flex-1 bg-zinc-950">
       <View className="flex-row justify-between items-center px-6 py-4 bg-zinc-900 border-b border-zinc-800">
-        <Text className="text-[#FFA62B] text-lg font-semibold">Barbearia Shaveasy</Text>
+        <Text className="text-[#FFA62B] text-lg font-semibold">
+          Barbearia Shaveasy
+        </Text>
         <View className="flex-row space-x-6">
           <TouchableOpacity>
             <Text className="text-[#FFA62B] font-medium">Início</Text>
@@ -41,13 +64,12 @@ export default function HomePage() {
           <Text className="text-[#FFA62B] mb-1">
             Rua das Flores, 123 - Centro, Olinda/PE
           </Text>
-          <Text className="text-[#FFA62B]mb-3">
+          <Text className="text-[#FFA62B] mb-3">
             Funcionamento: terça à sábado, das 9h às 18h
           </Text>
           <Text className="text-[#FFA62B]">
             Bem-vindo à Barbearia Shaveasy! Aqui tradição e estilo se encontram.
-            Oferecemos cortes modernos e atendimento de qualidade, garantindo uma
-            experiência única em cada visita.
+            Oferecemos cortes modernos e atendimento de qualidade.
           </Text>
         </View>
 
@@ -79,6 +101,36 @@ export default function HomePage() {
           ))}
         </View>
       </ScrollView>
+
+      {/* Modal de Horários */}
+      <Modal visible={modalVisible} transparent animationType="fade">
+        <View className="flex-1 bg-black/60 justify-center items-center">
+          <View className="bg-zinc-900 w-11/12 p-5 rounded-lg border border-zinc-800">
+            <Text className="text-lg font-semibold text-[#FFA62B] mb-4">
+              {selectedService ? `Agendar ${selectedService}` : "Agendar"}
+            </Text>
+
+            {availableSlots.map((slot) => (
+              <TouchableOpacity
+                key={`${slot.day}-${slot.time}`}
+                className="bg-zinc-800 p-3 rounded-md mb-2"
+                onPress={() => handleSlotSelect(slot)}
+              >
+                <Text className="text-white">
+                  {slot.day} - {slot.time}
+                </Text>
+              </TouchableOpacity>
+            ))}
+
+            <TouchableOpacity
+              className="mt-3 p-3 bg-red-500 rounded-md"
+              onPress={() => setModalVisible(false)}
+            >
+              <Text className="text-white text-center">Cancelar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }

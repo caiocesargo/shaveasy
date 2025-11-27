@@ -78,7 +78,6 @@ export default function LoginBarbeiro() {
           </TouchableOpacity>
         </View>
 
-        {/* {error !== "" && <Text className="text-red-500 mb-4">{error}</Text>} */}
 
         <View className="flex-row space-x-4 justify-between w-72 ">
           <TouchableOpacity

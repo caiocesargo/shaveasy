@@ -2,17 +2,11 @@ import React, { useMemo, useState } from "react";
 import { View, Text, TouchableOpacity, FlatList, Alert } from "react-native";
 import { useRouter } from "expo-router";
 
-/**
- * Tela "Meus Agendamentos" (cliente)
- * - lista apenas agendamentos futuros
- * - permite cancelar um agendamento (remove do state)
- * - mantém estilo alinhado ao resto do app (fundo escuro, tailwind)
- */
 
 type Appointment = {
   id: string;
   service: string;
-  datetimeISO: string; // ISO string (ex: "2025-11-30T14:00:00")
+  datetimeISO: string;
   barber?: string;
   price?: string;
 };
@@ -20,14 +14,12 @@ type Appointment = {
 export default function AgendamentosClient() {
   const router = useRouter();
 
-  // MOCK: dados iniciais (vai vir do back depois)
   const [appointments, setAppointments] = useState<Appointment[]>([
     { id: "1", service: "Corte Simples", datetimeISO: "2025-11-26T15:00:00", barber: "Lucas", price: "R$ 25,00" },
-    { id: "2", service: "Barba Simples", datetimeISO: "2025-10-10T10:00:00", barber: "João", price: "R$ 25,00" }, // passado
+    { id: "2", service: "Barba Simples", datetimeISO: "2025-10-10T10:00:00", barber: "João", price: "R$ 25,00" },
     { id: "3", service: "Corte + Barba", datetimeISO: "2025-12-05T09:00:00", barber: "Carlos", price: "R$ 35,00" },
   ]);
 
-  // filtra apenas futuros (comparação com now)
   const upcoming = useMemo(() => {
     const now = new Date();
     return appointments.filter((a) => new Date(a.datetimeISO) > now).sort((a, b) => +new Date(a.datetimeISO) - +new Date(b.datetimeISO));
@@ -47,7 +39,6 @@ export default function AgendamentosClient() {
           style: "destructive",
           onPress: () => {
             setAppointments((prev) => prev.filter((p) => p.id !== id));
-            // futuramente: chamar endpoint DELETE /agendamentos/:id
           },
         },
       ],
@@ -82,7 +73,6 @@ export default function AgendamentosClient() {
 
   return (
     <View className="flex-1 bg-zinc-950">
-      {/* Navbar fixa simples */}
       <View className="flex-row justify-between items-center px-6 py-4 bg-zinc-900 border-b border-zinc-800">
         <Text className="text-[#FFA62B] text-lg font-semibold">Barbearia Shaveasy</Text>
         <View className="flex-row space-x-6">
