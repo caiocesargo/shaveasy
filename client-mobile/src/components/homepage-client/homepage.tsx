@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,14 +11,16 @@ import { useRouter } from "expo-router";
 export default function HomePage() {
   const router = useRouter();
 
-  const [modalVisible, setModalVisible] = useState(false);
+  const [isModalVisible, setModalVisible] = useState(false);
   const [selectedService, setSelectedService] = useState<string | null>(null);
-  const [availableSlots] = useState([
-    { day: "Terça-feira", time: "09:00" },
-    { day: "Terça-feira", time: "10:00" },
-    { day: "Quarta-feira", time: "15:00" },
-    { day: "Quinta-feira", time: "14:00" },
-  ]);
+
+  const [selectedDate] = useState("2025-11-20"); 
+  const [selectedHorario, setSelectedHorario] = useState<string | null>(null);
+  const [horariosOcupados, setHorariosOcupados] = useState<string[]>([]);
+
+  const horariosPossiveis = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
+  const barbeiroId = 123;
+  const token = "TOKEN_TEMPORARIO";
 
   const services = [
     { id: 1, name: "Corte Simples", price: "R$ 25,00", duration: "40 min" },
@@ -31,17 +33,47 @@ export default function HomePage() {
     setModalVisible(true);
   };
 
-  const handleSlotSelect = (slot: { day: string; time: string }) => {
-    console.log(`Agendou ${selectedService} para ${slot.day} às ${slot.time}`);
+  const fetchDisponibilidade = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:3333/agendamento/disponibilidade?barbeiroId=${barbeiroId}&data=${selectedDate}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const data = await response.json();
+
+      const horasFormatadas = data.map((isoString: string) => {
+        const date = new Date(isoString);
+        return date.toISOString().substring(11, 16);
+      });
+
+      setHorariosOcupados(horasFormatadas);
+    } catch (error) {
+      console.error("Erro ao buscar disponibilidade", error);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedDate && barbeiroId) fetchDisponibilidade();
+  }, [selectedDate, barbeiroId]);
+
+  const handleConfirmAgendamento = () => {
+    if (!selectedHorario) {
+      alert("Selecione um horário antes!");
+      return;
+    }
+
+    console.log(`Agendado: ${selectedService} às ${selectedHorario}`);
     setModalVisible(false);
+
   };
 
   return (
     <View className="flex-1 bg-zinc-950">
       <View className="flex-row justify-between items-center px-6 py-4 bg-zinc-900 border-b border-zinc-800">
-        <Text className="text-[#FFA62B] text-lg font-semibold">
-          Barbearia Shaveasy
-        </Text>
+        <Text className="text-[#FFA62B] text-lg font-semibold">Barbearia Shaveasy</Text>
         <View className="flex-row space-x-6">
           <TouchableOpacity>
             <Text className="text-[#FFA62B] font-medium">Início</Text>
@@ -69,14 +101,11 @@ export default function HomePage() {
           </Text>
           <Text className="text-[#FFA62B]">
             Bem-vindo à Barbearia Shaveasy! Aqui tradição e estilo se encontram.
-            Oferecemos cortes modernos e atendimento de qualidade.
           </Text>
         </View>
 
         <View className="mt-4">
-          <Text className="text-[#FFA62B] text-xl font-semibold mb-4">
-            Serviços disponíveis
-          </Text>
+          <Text className="text-[#FFA62B] text-xl font-semibold mb-4">Serviços disponíveis</Text>
 
           {services.map((service) => (
             <View
@@ -102,32 +131,55 @@ export default function HomePage() {
         </View>
       </ScrollView>
 
-      {/* Modal de Horários */}
-      <Modal visible={modalVisible} transparent animationType="fade">
-        <View className="flex-1 bg-black/60 justify-center items-center">
-          <View className="bg-zinc-900 w-11/12 p-5 rounded-lg border border-zinc-800">
-            <Text className="text-lg font-semibold text-[#FFA62B] mb-4">
-              {selectedService ? `Agendar ${selectedService}` : "Agendar"}
+
+      <Modal visible={isModalVisible} transparent animationType="fade">
+        <View className="flex-1 bg-black/70 justify-center items-center px-4">
+          <View className="bg-zinc-900 w-full max-w-sm p-6 rounded-xl border border-zinc-800">
+            <Text className="text-[#FFA62B] text-lg font-semibold mb-3">
+              Agendar - {selectedService}
             </Text>
 
-            {availableSlots.map((slot) => (
-              <TouchableOpacity
-                key={`${slot.day}-${slot.time}`}
-                className="bg-zinc-800 p-3 rounded-md mb-2"
-                onPress={() => handleSlotSelect(slot)}
-              >
-                <Text className="text-white">
-                  {slot.day} - {slot.time}
-                </Text>
-              </TouchableOpacity>
-            ))}
+            <Text className="text-zinc-400 mb-2">Selecione um horário:</Text>
 
-            <TouchableOpacity
-              className="mt-3 p-3 bg-red-500 rounded-md"
-              onPress={() => setModalVisible(false)}
-            >
-              <Text className="text-white text-center">Cancelar</Text>
-            </TouchableOpacity>
+            <View className="flex-row flex-wrap gap-2">
+              {horariosPossiveis.map((horario) => {
+                const isOcupado = horariosOcupados.includes(horario);
+                let bgClass = "bg-zinc-800";
+                if (isOcupado) {
+                  bgClass = "bg-zinc-700 opacity-50";
+                } else if (selectedHorario === horario) {
+                  bgClass = "bg-blue-600";
+                }
+
+                return (
+                  <TouchableOpacity
+                    key={horario}
+                    disabled={isOcupado}
+                    onPress={() => setSelectedHorario(horario)}
+                    className={`px-3 py-2 rounded-lg ${bgClass}`}
+                  >
+                    <Text className={isOcupado ? "text-zinc-500" : "text-white"}>
+                      {horario} {isOcupado ? "(ocupado)" : ""}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <View className="flex-row justify-end mt-6 gap-3">
+              <TouchableOpacity
+                onPress={() => setModalVisible(false)}
+                className="px-4 py-2 bg-zinc-700 rounded-lg"
+              >
+                <Text className="text-white">Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleConfirmAgendamento}
+                className="px-4 py-2 bg-blue-500 rounded-lg"
+              >
+                <Text className="text-white">Confirmar</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
