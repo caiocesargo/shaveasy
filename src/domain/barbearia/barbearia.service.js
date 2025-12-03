@@ -3,7 +3,7 @@ import prisma from '../../config/prisma.js'; // PELA LINHA CORRETA
 class BarbeariaService {
 
     async criar(dadosBarbearia, userIdDono) {
-        
+
 
         const resultado = await prisma.$transaction(async (tx) => {
 
@@ -19,9 +19,9 @@ class BarbeariaService {
                 where: { id: userIdDono },
                 data: {
                     tipo: 'admin',
-                    barbeariaId: novaBarbearia.id 
+                    barbeariaId: novaBarbearia.id
                 },
-                select: { 
+                select: {
                     id: true,
                     nome: true,
                     email: true,

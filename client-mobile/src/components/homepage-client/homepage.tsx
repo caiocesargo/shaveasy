@@ -7,6 +7,15 @@ import {
   Modal,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { storage } from "../../utils/storage";
+import api from "../../services/api";
+
+interface Service {
+  id: number;
+  nome: string;
+  preco: number;
+  duracao: number;
+}
 
 export default function HomePage() {
   const router = useRouter();
@@ -14,19 +23,55 @@ export default function HomePage() {
   const [isModalVisible, setModalVisible] = useState(false);
   const [selectedService, setSelectedService] = useState<string | null>(null);
 
-  const [selectedDate] = useState("2025-11-20"); 
+  const [selectedDate] = useState("2025-11-20");
   const [selectedHorario, setSelectedHorario] = useState<string | null>(null);
   const [horariosOcupados, setHorariosOcupados] = useState<string[]>([]);
 
   const horariosPossiveis = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
-  const barbeiroId = 123;
-  const token = "TOKEN_TEMPORARIO";
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const services = [
-    { id: 1, name: "Corte Simples", price: "R$ 25,00", duration: "40 min" },
-    { id: 4, name: "Barba Completa", price: "R$ 20,00", duration: "25 min" },
-    { id: 5, name: "Corte + Barba", price: "R$ 35,00", duration: "60 min" },
-  ];
+  // ID da barbearia fixo por enquanto (ou pegar do contexto/seleção anterior)
+  const barbeiroId = 123; // Esse ID provavelmente deveria vir da seleção de barbearia ou do agendamento
+  // Mas para listar serviços, precisamos do ID da Barbearia.
+  // Vamos assumir um ID de barbearia fixo para teste ou pegar do primeiro da lista
+  const [barbeariaIdSelecionada, setBarbeariaIdSelecionada] = useState<number | null>(null);
+
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const token = await storage.getItem('token');
+        if (!token) {
+          router.replace('/login-client');
+          return;
+        }
+
+        // 1. Buscar Barbearias (para pegar o ID da primeira e listar serviços)
+        // Se já tivermos o ID, pulamos essa parte.
+        const responseBarbearias = await api.get('/barbearias', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (responseBarbearias.data.length > 0) {
+          const idBarbearia = responseBarbearias.data[0].id;
+          setBarbeariaIdSelecionada(idBarbearia);
+
+          // 2. Buscar Serviços da Barbearia
+          const responseServicos = await api.get(`/agendamento/servicos/barbearia/${idBarbearia}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          setServices(responseServicos.data);
+        }
+
+      } catch (error) {
+        console.error("Erro ao carregar dados", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
 
   const handleSchedule = (serviceName: string) => {
     setSelectedService(serviceName);
@@ -35,14 +80,15 @@ export default function HomePage() {
 
   const fetchDisponibilidade = async () => {
     try {
-      const response = await fetch(
-        `http://localhost:3333/agendamento/disponibilidade?barbeiroId=${barbeiroId}&data=${selectedDate}`,
+      const token = await storage.getItem('token');
+      const response = await api.get(
+        `/agendamento/disponibilidade?barbeiroId=${barbeiroId}&data=${selectedDate}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      const data = await response.json();
+      const data = response.data;
 
       const horasFormatadas = data.map((isoString: string) => {
         const date = new Date(isoString);
@@ -114,14 +160,14 @@ export default function HomePage() {
             >
               <View>
                 <Text className="text-[#FFA62B] text-base font-medium">
-                  {service.name}
+                  {service.nome}
                 </Text>
                 <Text className="text-zinc-400 text-sm">
-                  {service.price} • {service.duration}
+                  R$ {service.preco} • {service.duracao} min
                 </Text>
               </View>
               <TouchableOpacity
-                onPress={() => handleSchedule(service.name)}
+                onPress={() => handleSchedule(service.nome)}
                 className="bg-blue-500 px-4 py-2 rounded-lg"
               >
                 <Text className="text-white font-medium">Agendar</Text>

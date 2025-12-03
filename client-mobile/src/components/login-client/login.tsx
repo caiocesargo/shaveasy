@@ -2,43 +2,43 @@ import React, { useState } from "react";
 import { useRouter } from "expo-router";
 import { EyeOff, Eye } from "lucide-react-native";
 import { View, Text, TextInput, TouchableOpacity } from "react-native";
-// import { validateEmail } from "../../utils/valideEmail";
-// import { validatePassword } from "../../utils/validePassword";
+import api from "../../services/api";
+import { storage } from "../../utils/storage";
 
 export default function Login() {
   const router = useRouter();
-  // const [error, setError] = useState("");
+  const [error, setError] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [senhaVisivel, setSenhaVisivel] = useState(false);
 
-  // const { valid } = validateEmail(email);
-  // const { valid: validPassword } = validatePassword(senha);
-
   const isLoginDisabled = email === "" || senha === "";
 
   const handlePressLogin = async () => {
-  router.push("/homepage");
-};
+    if (isLoginDisabled) return;
 
+    try {
+      const response = await api.post('/auth/login', {
+        email,
+        password: senha
+      });
 
-  //  const handlePressLogin = async () => {
-  //   if (isLoginDisabled) return;
+      const { token, user } = response.data;
 
-  //   try {
-  //     if (!valid || !validPassword) {
-  //       /* eslint-disable-next-line no-console */
-  //       console.log("Credenciais inválidas");
-  //       setError("Credenciais inválidas");
-  //     } else {
-  //       router.push("/homepage");
-  //     }
-  //   } catch (err) {
-  //     setError("Erro ao fazer login");
-  //     /* eslint-disable-next-line no-console */
-  //     console.log("Erro na requisição", err);
-  //   }
-  // };
+      await storage.setItem('token', token);
+      await storage.setItem('user', JSON.stringify(user));
+
+      router.push("/homepage");
+    } catch (err: any) {
+      if (err.response && err.response.data && err.response.data.error) {
+        setError(err.response.data.error);
+      } else {
+        setError("Erro ao fazer login");
+      }
+      /* eslint-disable-next-line no-console */
+      console.log("Erro na requisição", err);
+    }
+  };
 
   return (
     <View className="flex-1 bg-zinc-950">
@@ -72,7 +72,7 @@ export default function Login() {
           </TouchableOpacity>
         </View>
 
-        {/* {error !== "" && <Text className="text-red-500 mb-4">{error}</Text>} */}
+        {error !== "" && <Text className="text-red-500 mb-4">{error}</Text>}
 
         <View className="flex-row space-x-4 justify-between w-72 ">
           <TouchableOpacity className="px-4 py-4 rounded-lg shadow-md bg-[#FFA62B]" onPress={() => router.push("/register")}>

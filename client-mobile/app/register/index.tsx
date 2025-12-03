@@ -4,12 +4,14 @@ import { Eye, EyeOff, ArrowLeft } from "lucide-react-native";
 import { useRouter } from "expo-router";
 
 import { validateEmail } from "../../src/utils/valideEmail";
-import { validatePassword } from "../../src/utils/validePassword";   
+import { validatePassword } from "../../src/utils/validePassword";
+import api from "../../src/services/api";
 
 
 const ModalRegister: React.FC = () => {
     const router = useRouter();
     const [name, setName] = useState("");
+    const [telefone, setTelefone] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -25,10 +27,20 @@ const ModalRegister: React.FC = () => {
             if (!validEmail || !validPassword || password !== confirmPassword) {
                 setError("Verifique os campos e tente novamente.");
             } else {
-                // Simulate successful registration
+                await api.post('/auth/register', {
+                    nome: name,
+                    email,
+                    password,
+                    telefone
+                });
                 router.replace("/login-client");
             }
-        } catch (err) {
+        } catch (err: any) {
+            if (err.response && err.response.data && err.response.data.error) {
+                setError(err.response.data.error);
+            } else {
+                setError("Erro ao cadastrar usuário.");
+            }
             /* eslint-disable-next-line no-console */
             console.error("Error registering user:", err);
         }
@@ -53,6 +65,14 @@ const ModalRegister: React.FC = () => {
                     placeholderTextColor="#FFA62B"
                     value={name}
                     onChangeText={setName}
+                />
+                <TextInput
+                    className="w-full p-3 border border-[#FFA62B] rounded-lg text-[#FFA62B] mb-4"
+                    placeholder="Telefone"
+                    placeholderTextColor="#FFA62B"
+                    value={telefone}
+                    onChangeText={setTelefone}
+                    keyboardType="phone-pad"
                 />
                 <TextInput
                     className="w-full p-3 border border-[#FFA62B] rounded-lg text-[#FFA62B] mb-4"
@@ -88,9 +108,9 @@ const ModalRegister: React.FC = () => {
                     </TouchableOpacity>
                 </View>
                 <TouchableOpacity
-                    className={`bg-zinc-950 p-3 rounded-lg w-full items-center mb-2 ${!name || !email || !password || !confirmPassword ? "opacity-50" : "bg-zinc-950"}`}
+                    className={`bg-zinc-950 p-3 rounded-lg w-full items-center mb-2 ${!name || !email || !password || !confirmPassword || !telefone ? "opacity-50" : "bg-zinc-950"}`}
                     onPress={handleRegister}
-                    disabled={!name || !email || !password || !confirmPassword}
+                    disabled={!name || !email || !password || !confirmPassword || !telefone}
                 >
                     <Text className="text-[#FFA62B] font-bold">Registrar</Text>
                 </TouchableOpacity>

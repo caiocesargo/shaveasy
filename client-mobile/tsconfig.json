@@ -1,23 +1,36 @@
 {
-  "extends": "expo/tsconfig.base",
+  "extends": "./node_modules/expo/tsconfig.base.json",
   "compilerOptions": {
     "strict": true,
     "paths": {
-      "@components": ["./src/components"],
-      "@utils": ["./src/utils"],
-      "@assets": ["./src/assets"],
-      "@contexts": ["./src/contexts"],
-      "@icons": ["./src/assets/icons"],
-      "@styles": ["./src/styles/theme"]
+      "@components": [
+        "./src/components"
+      ],
+      "@utils": [
+        "./src/utils"
+      ],
+      "@assets": [
+        "./src/assets"
+      ],
+      "@contexts": [
+        "./src/contexts"
+      ],
+      "@icons": [
+        "./src/assets/icons"
+      ],
+      "@styles": [
+        "./src/styles/theme"
+      ]
     },
-    "types": ["@types/styled-components-react-native"]
+    "types": [
+      "@types/styled-components-react-native"
+    ]
   },
-  
   "exclude": [
     "node_modules",
-    "prisma", 
-    "src/domain", 
-    "src/config", 
-    "src/server.js" 
+    "prisma",
+    "src/domain",
+    "src/config",
+    "src/server.js"
   ]
 }
