@@ -26,7 +26,7 @@ export default function HomePage() {
 
   const { data: barbeariaData } = useBarbearia({ 
     token: authData?.token || null 
-  });
+  });  
 
   const { horariosOcupados } = useDisponibilidade({
     barbeiroId,
@@ -42,6 +42,14 @@ export default function HomePage() {
 
   const barbearia = barbeariaData?.barbearia;
   
+  interface ApiService {
+    id: string;
+    nome: string;
+    preco: number;
+    duracao_min: number;
+    barbeariaId: string;
+  }
+  
   interface Service {
     id: string;
     nome: string;
@@ -49,7 +57,12 @@ export default function HomePage() {
     duracao: string;
   }
   
-  const services: Service[] = [];
+  const services: Service[] = barbearia?.servicos?.map((service: ApiService) => ({
+    id: service.id,
+    nome: service.nome,
+    preco: service.preco.toString(),
+    duracao: service.duracao_min.toString(),
+  })) || [];
 
   const handleSchedule = (serviceName: string) => {
     setSelectedService(serviceName);

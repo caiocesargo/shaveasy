@@ -33,7 +33,11 @@ class BarbeariaService {
         return resultado;
     }
     async getBarbearia() {
-        const barbearia = await prisma.barbearia.findFirst({});
+        const barbearia = await prisma.barbearia.findFirst({
+            include: {
+                servicos: true,
+            }
+        });
         return barbearia;
     }
 }
