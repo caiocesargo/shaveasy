@@ -14,25 +14,29 @@ generator client {
 // DOMÍNIO: AUTH/BARBEARIA (Foco da Pessoa 1 - João)
 // ----------------------------------------------------------------------
 
-// Tabela 1: USUARIO (Simplificado)
+// Tabela 1: USUARIO (Consolidada - Cliente e Barbeiro)
 model Usuario {
-  id          String   @id @default(uuid())
-  email       String   @unique // Único
-  senha_hash  String   // Salva o hash do Bcrypt
-  nome        String   
-  telefone    String   
+  id            String   @id @default(uuid())
+  email         String   @unique // Único
+  senha_hash    String?  // Salva o hash do Bcrypt (NULL para barbeiros criados automaticamente)
+  nome          String   
+  telefone      String   
   
-  // Simplificado: 'cliente' ou 'admin' (admin = dono/barbeiro)
-  tipo        String   @default("cliente") 
+  // Tipos: 'cliente' ou 'barbeiro'
+  tipo          String   @default("cliente") 
+  
+  // Campo para barbeiros - especialidade profissional
+  especialidade String?
   
   // A qual barbearia este admin/barbeiro pertence
-  barbeariaId String?   
-  barbearia   Barbearia? @relation(fields: [barbeariaId], references: [id], onDelete: SetNull)
+  barbeariaId   String?   
+  barbearia     Barbearia? @relation(fields: [barbeariaId], references: [id], onDelete: SetNull)
 
-  createdAt   DateTime @default(now())
+  createdAt     DateTime @default(now())
 
-  // Relações que o Neto irá usar:
+  // Relações:
   agendamentosCliente Agendamento[] @relation("AgendamentosDoCliente")
+  agendamentosBarbeiro Agendamento[] @relation("AgendamentosDoTrabalhador")
   
   @@map("usuarios") 
 }
@@ -52,7 +56,6 @@ model Barbearia {
   
   // Relações do Neto
   servicos     Servico[]
-  barbeiros    Barbeiro[]
   agendamentos Agendamento[]
 
   createdAt    DateTime @default(now())
@@ -80,20 +83,7 @@ model Servico {
   @@map("servicos")
 }
 
-// Representa o profissional (Simplificado para o MVP)
-model Barbeiro {
-  id            String   @id @default(uuid())
-  nome          String
-  especialidade String?
-
-  // Chave do Multi-Tenancy (Obrigatório!)
-  barbearia     Barbearia @relation(fields: [barbeariaId], references: [id], onDelete: Cascade)
-  barbeariaId   String
-  
-  agendamentos  Agendamento[]
-
-  @@map("barbeiros")
-}
+// REMOVIDO: Tabela Barbeiro - agora consolidado em Usuario
 
 // Requisito: Agendamento de Serviços
 model Agendamento {
@@ -116,8 +106,8 @@ model Agendamento {
   cliente     Usuario  @relation("AgendamentosDoCliente", fields: [clienteId], references: [id], onDelete: Cascade)
   clienteId   String
   
-  barbeiro     Barbeiro @relation(fields: [barbeiroId], references: [id], onDelete: Cascade)
-  barbeiroId   String
+  babeiro Usuario  @relation("AgendamentosDoTrabalhador", fields: [barbeiroId], references: [id], onDelete: Cascade)
+  barbeiroId String
 
   servico     Servico  @relation(fields: [servicoId], references: [id], onDelete: Cascade)
   servicoId   String

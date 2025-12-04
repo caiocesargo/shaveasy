@@ -10,7 +10,7 @@ export const verifyJWT = (req, res, next) => {
     const token = authHeader.split(' ')[1];
 
     if (!token) {
-        return res.status(401).json({ error: 'Token mal formatado;' });
+        return res.status(401).json({ error: 'Token mal formatado.' });
     }
 
     try {
@@ -23,6 +23,46 @@ export const verifyJWT = (req, res, next) => {
         // Deixa a requisição continuar para o Controller
         next();
     } catch (error){
-        return res.status(403).json({ error: 'Token inválido ou expirado;' })
+        return res.status(403).json({ error: 'Token inválido ou expirado.' })
     }
+};
+
+// Middleware para verificar se o usuário é admin/barbeiro
+export const verifyBarbeiro = (req, res, next) => {
+    if (req.user?.tipo !== 'barbeiro') {
+        return res.status(403).json({ 
+            error: 'Acesso negado. Apenas administradores/barbeiros podem acessar este recurso.' 
+        });
+    }
+    
+    if (!req.user?.barbeariaId) {
+        return res.status(403).json({ 
+            error: 'Usuário admin deve estar associado a uma barbearia.' 
+        });
+    }
+    
+    next();
+};
+
+// Middleware para verificar se o usuário é cliente
+export const verifyClient = (req, res, next) => {
+    if (req.user?.tipo !== 'cliente') {
+        return res.status(403).json({ 
+            error: 'Acesso negado. Apenas clientes podem acessar este recurso.' 
+        });
+    }
+    
+    next();
+};
+
+// Middleware flexível para verificar tipos específicos
+export const verifyUserType = (allowedTypes) => {
+    return (req, res, next) => {
+        if (!allowedTypes.includes(req.user?.tipo)) {
+            return res.status(403).json({ 
+                error: `Acesso negado. Tipos permitidos: ${allowedTypes.join(', ')}` 
+            });
+        }
+        next();
+    };
 };
