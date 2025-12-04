@@ -1,138 +1,145 @@
-# Shaveasy - API Backend
+# Shaveasy
 
-## 1\. Descrição do Projeto
+Plataforma de agendamento para barbearias que conecta clientes e barbeiros de forma simples e eficiente.
 
-O Shaveasy é uma plataforma móvel (API) criada para revolucionar a forma como barbeiros e clientes se conectam. Esta API de backend (construída em Node.js e PostgreSQL) serve como o motor central para o aplicativo, gerenciando usuários, autenticação, barbearias (multi-tenant), serviços e o sistema de agendamento.
+## O que é?
 
-Para os barbeiros, o Shaveasy oferece uma ferramenta moderna de gestão, permitindo organizar a agenda e acompanhar atendimentos.
+Shaveasy é um MVP acadêmico com três componentes principais:
 
-Este projeto foi desenvolvido como um MVP (Produto Mínimo Viável) acadêmico com foco em uma arquitetura de backend robusta, segura (JWT) e escalável (Multi-Tenancy).
+- **Backend**: API Node.js + Express + PostgreSQL
+- **Mobile**: Aplicativo React Native + Expo
+- **Web**: Interface web em desenvolvimento
 
-## 2\. Funcionalidades Principais (Estórias de Usuário)
+O sistema usa Multi-Tenancy, permitindo que cada barbearia gerencie seus próprios serviços, barbeiros e agendamentos.
 
-Este backend implementa as seguintes lógicas de negócio:
+## Funcionalidades
 
-  * **Cadastro de Cliente:** Permite que novos usuários se cadastrem no sistema.
-  * **Login de Cliente:** Autentica usuários (via Email/Senha) e retorna um Token de Acesso JWT.
-  * **Criação de Tenant (Admin):** Permite que um `cliente` crie sua própria `Barbearia`, promovendo-o a `admin` do seu próprio *tenant*.
-  * **Gerenciamento (Admin):** Permite que o `admin` gerencie os dados da sua barbearia, bem como seus serviços e barbeiros.
-  * **Agendamento de Serviços:** Permite que um `cliente` logado crie um novo agendamento.
-  * **Lógica Anti-Double Booking:** O sistema impede (retorna erro `409 Conflict`) que um barbeiro tenha dois agendamentos no mesmo horário.
-  * **Visualização de Agendamentos (Cliente):** Permite que o cliente logado veja apenas os seus agendamentos futuros.
-  * **Visualização da Agenda (Barbeiro):** (Pendente/Neto) Permite ao `admin` ver todos os agendamentos da sua barbearia.
+### Cliente
+- Registro e login com Email/Senha
+- Visualizar barbearias e serviços disponíveis
+- Agendar serviços com seleção de data/horário
+- Ver seus agendamentos
+- Proteção contra double booking (impossível agendar horários ocupados)
 
-## 3\. Stack Tecnológica (Backend)
+### Barbeiro (Admin)
+- Painel para gerenciar sua barbearia
+- CRUD de serviços
+- Visualizar agenda completa
+- Gerenciar barbeiros vinculados
+- Configurações da barbearia
 
-  * **Runtime:** Node.js (v24.11)
-  * **Framework:** Express.js
-  * **Banco de Dados:** PostgreSQL (v18)
-  * **ORM:** Prisma (v5+)
-  * **Autenticação:** JWT (jsonwebtoken) e Criptografia (Bcrypt)
-  * **Ambiente:** `nodemon`, `dotenv`
-  * **Testes de API:** Thunder Client
+### Segurança
+- Autenticação JWT
+- Senhas com Bcrypt
+- Validação de email e senha
+- Middleware de verificação em rotas protegidas
 
-## 4\. Como Rodar o Projeto (Ambiente de Desenvolvimento)
+## Stack
 
-Siga este checklist para configurar e rodar o projeto em uma nova máquina (ex: notebook do professor/avaliador).
+**Backend**: Node.js v24, Express, PostgreSQL, Prisma, JWT, Bcrypt  
+**Mobile**: React Native 0.81, Expo, TypeScript, Tailwind (NativeWind), React Query, Axios
 
-### Passo 1: Obter o Código
+## Começar
+
+### Pré-requisitos
+
+- Node.js 18+
+- PostgreSQL 12+
+- npm ou pnpm
+
+### Instalação
 
 ```bash
-# 1. Clone o repositório principal
+# Clone
 git clone https://github.com/caiocesargo/shaveasy.git
-
-# 2. Entre na pasta
 cd shaveasy
 
-# 3. (IMPORTANTE) Entre na branch de backend principal
-# (Substitua pelo nome da branch mesclada final, ex: 'main' ou 'develop')
-git checkout feature/joao-auth-setup
-```
+# Configure o banco
+psql -U postgres
+CREATE DATABASE shaveasy;
+\q
 
-### Passo 2: Instalar as Dependências
+# Crie .env na raiz
+DATABASE_URL="postgresql://postgres:sua_senha@localhost:5432/shaveasy"
+PORT=3333
+JWT_SECRET="sua_chave_secreta"
+JWT_EXPIRATION="24h"
 
-Isto irá instalar o Express, Prisma, Bcrypt, JWT, etc.
-
-```bash
+# Instale dependências
 npm install
+
+# Execute migrações
+npx prisma migrate dev --name init
 ```
 
-### Passo 3: Configurar o Ambiente Local (Obrigatório)
-
-Este projeto requer o PostgreSQL instalado localmente.
-
-1.  **Instale o PostgreSQL** (v18).
-
-2.  **Abra o PgAdmin** (ou DBeaver) e crie um novo banco de dados vazio chamado **`shaveasy`**.
-
-3.  **Crie o arquivo `.env`:** Na raiz do projeto, crie um arquivo chamado `.env`.
-
-4.  **Preencha o `.env`:** Cole o conteúdo abaixo, mas **substitua `[SUA_SENHA]`** pela senha do seu usuário `postgres` (definida na instalação do PostgreSQL).
-
-    ```bash
-    # .env
-    DATABASE_URL="postgresql://postgres:[SUA_SENHA]@localhost:5432/shaveasy?schema=public"
-    JWT_SECRET="chave-secreta-para-testes-academicos-123456"
-    PORT=3333
-    ```
-
-### Passo 4: Criar as Tabelas (Migração)
-
-Execute o Prisma para construir todas as 5 tabelas (`usuarios`, `barbearias`, etc.) no seu banco `shaveasy`.
+### Rodar
 
 ```bash
-npx prisma migrate dev
-```
-
-### Passo 5: Rodar o Servidor
-
-```bash
+# Backend
 npm run dev
+
+# Mobile
+cd client-mobile
+npm start
 ```
 
-O terminal deve exibir: `🚀 Servidor rodando na porta 3333`. A API está pronta para receber requisições.
+O servidor roda em `http://localhost:3333`
 
------
+## API Endpoints
 
-## 5\. 🗺️ Documentação da API (Endpoints)
+### Auth
+- `POST /auth/register` - Registrar cliente
+- `POST /auth/login` - Login
+- `POST /auth/criar-barbearia` - Criar barbearia (requer auth)
 
-Todas as rotas (exceto `/register` e `/login`) são **Protegidas** e exigem um Token JWT (Bearer Token) no cabeçalho `Authorization`.
+### Barbearias
+- `GET /barbearias` - Listar todas
+- `POST /barbearias` - Criar (requer auth)
+- `PUT /barbearias/:id` - Atualizar (requer auth)
 
-### Domínio: `Autenticação (/auth)`
+### Serviços
+- `GET /agendamento/servicos/:barbeariaId` - Listar
+- `POST /agendamento/servicos` - Criar (requer auth)
+- `DELETE /agendamento/servicos/:id` - Deletar (requer auth)
 
-(Responsável: João)
+### Agendamentos
+- `POST /agendamento/criar` - Criar agendamento (requer auth)
+- `GET /agendamento/meus` - Ver meus agendamentos (requer auth)
+- `GET /agendamento/barbearia/:id` - Ver agenda (requer auth, admin)
 
-| Método |       Rota       |   Protegido?     | Descrição |
+## Modelo de Dados
 
-| `POST` | `/auth/register` | ❌ Não          | Registra um novo `cliente`. |
-| `POST` | `/auth/login`    | ❌ Não          | Autentica um usuário e retorna um `token` JWT. |
-| `GET` | `/auth/perfil`    | ✅ Sim          | Retorna os dados do usuário (cliente ou admin) logado. |
-| `GET` | `/auth/meus-agendamentos` | ✅ Sim  | Lista os agendamentos futuros do `cliente` logado. |
+- **Usuario**: email único, tipo (cliente/barbeiro), senha hash com bcrypt
+- **Barbearia**: isolada por tenant
+- **Servico**: nome, preço, duração em minutos
+- **Agendamento**: dataHora e dataHoraFim (crucial para anti-double booking), status confirmado
 
-### Domínio: `Barbearias (/barbearias)`
+## Arquitetura
 
-(Responsável: João)
+Segue padrão DDD com separação:
+- **Routes**: Definição de endpoints
+- **Controller**: Tratamento de requests
+- **Service**: Lógica de negócio
+- **Prisma**: Acesso ao banco
 
-| Método | Rota | Protegido? | Descrição |
-| `POST` | `/barbearias` | ✅ Sim | **(Admin)** Cria uma nova barbearia. Promove o usuário `cliente` para `admin` e o vincula à barbearia. |
-| `GET` | `/barbearias/minha` | ✅ Sim | **(Admin)** Retorna os dados da barbearia do `admin` logado. |
-| `PUT` | `/barbearias/minha` | ✅ Sim | **(Admin)** Atualiza os dados da barbearia do `admin` logado. |
+## Detalhes Importantes
 
-### Domínio: `Agendamento (/agendamento)`
+- **JWT**: Tokens expiram em 24h, enviar no header `Authorization: Bearer token`
+- **Anti-Double Booking**: Verifica conflitos entre `dataHora` e `dataHoraFim`
+- **Multi-Tenancy**: Cada barbearia isolada, filtros automáticos por `barbeariaId`
+- **Validações**: Email e senha têm padrões mínimos
 
-(Responsável: Neto)
+## Referências
 
-| Método | Rota | Protegido? | Descrição |
-| :--- | :--- | :--- | :--- |
-| `POST` | `/agendamento/servicos` | ✅ Sim | **(Admin)** Cria um novo serviço (ex: Corte, Barba) para a sua barbearia. |
-| `GET` | `/agendamento/servicos` | ✅ Sim | **(Admin/Cliente)** Lista todos os serviços da barbearia. |
-| `POST` | `/agendamento/barbeiros` | ✅ Sim | **(Admin)** Cria um novo barbeiro (profissional) para a sua barbearia. |
-| `GET` | `/agendamento/barbeiros` | ✅ Sim | **(Admin/Cliente)** Lista todos os barbeiros da barbearia. |
-| `POST` | `/agendamento/agendamentos` | ✅ Sim | **(Cliente)** Cria um novo agendamento. Inclui lógica Anti-Double Booking. |
-| `GET` | `/agendamento/agenda` | ✅ Sim | **(Admin)** Lista todos os agendamentos da barbearia (Visão do Barbeiro). |
+- [GUIA_WEB.md](./GUIA_WEB.md) - Setup web
+- [GUIA_MOBILE.md](./GUIA_MOBILE.md) - Setup mobile com Expo
 
-## 6\. Equipe
+## Contribuidores
 
-  * **João Victor:** Backend (Arquitetura, Auth, JWT, PostgreSQL/Prisma Setup, Domínio de Barbearias, Listagem de Cliente).
-  * **Neto:** Backend (Modelagem de Dados, Domínio de Agendamento, Serviços, Barbeiros e Lógica Anti-Double Booking).
-  * **Equipe Frontend:** Caio Cesar e Eduardo Henrique.
+- **João** - Backend, Auth, Tenants
+- **Neto** - Agendamentos, Anti-Double Booking
+- **Caio** - Frontend Mobile
+
+---
+
+**v1.0.0** | MIT License
