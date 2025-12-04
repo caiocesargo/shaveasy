@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
 import { View, Text, TouchableOpacity, TextInput, ScrollView } from "react-native";
 import { authUtils } from "../../utils/auth";
+import { useAuth, useBarbearia } from "../../hooks";
 
 
 interface ProfileSettingsModalProps {
@@ -11,7 +12,27 @@ interface ProfileSettingsModalProps {
 
 export default function ProfileSettingsModal({ visible, onClose }: ProfileSettingsModalProps) {
   const router = useRouter();
+  const { data: authData } = useAuth();
+  const { data: barbeariaData } = useBarbearia({
+    token: authData?.token || null,
+  });
+
+  const barbearia = barbeariaData?.barbearia;
+
+  const [nome, setNome] = useState("");
+  const [endereco, setEndereco] = useState("");
+  const [telefone, setTelefone] = useState("");
+
+  useEffect(() => {
+    if (barbearia) {
+      setNome(barbearia.nome || "");
+      setEndereco(barbearia.endereco || "");
+      setTelefone(barbearia.telefone || "");
+    }
+  }, [barbearia]);
+
   if (!visible) return null;
+
   const handleLogOut = () => {
     authUtils.logout();
     onClose();
@@ -27,11 +48,13 @@ export default function ProfileSettingsModal({ visible, onClose }: ProfileSettin
 
         <ScrollView showsVerticalScrollIndicator={false}>
           {/* Nome */}
-          <Text className="text-gray-300 mb-1">Nome</Text>
+          <Text className="text-gray-300 mb-1">Nome da Barbearia</Text>
           <TextInput
             className="bg-[#1F1F1F] text-white p-3 rounded-xl mb-4"
-            placeholder="Seu nome"
+            placeholder="Nome da barbearia"
             placeholderTextColor="#888"
+            value={nome}
+            onChangeText={setNome}
           />
 
           {/* Endereço */}
@@ -40,6 +63,8 @@ export default function ProfileSettingsModal({ visible, onClose }: ProfileSettin
             className="bg-[#1F1F1F] text-white p-3 rounded-xl mb-4"
             placeholder="Endereço da barbearia"
             placeholderTextColor="#888"
+            value={endereco}
+            onChangeText={setEndereco}
           />
 
           {/* Telefone */}
@@ -49,27 +74,12 @@ export default function ProfileSettingsModal({ visible, onClose }: ProfileSettin
             placeholder="(XX) XXXXX-XXXX"
             placeholderTextColor="#888"
             keyboardType="phone-pad"
+            value={telefone}
+            onChangeText={setTelefone}
           />
 
-          {/* Política de Cancelamento */}
-          <Text className="text-gray-300 mb-1">Política de Cancelamento</Text>
-          <TextInput
-            className="bg-[#1F1F1F] text-white p-3 rounded-xl mb-4 h-24"
-            placeholder="Descreva a política..."
-            placeholderTextColor="#888"
-            multiline
-          />
-
-          {/* Tempo mínimo de antecedência */}
-          <Text className="text-gray-300 mb-1">Tempo mínimo de antecedência</Text>
-          <TextInput
-            className="bg-[#1F1F1F] text-white p-3 rounded-xl mb-4"
-            placeholder="Ex: 1 hora"
-            placeholderTextColor="#888"
-            keyboardType="numeric"
-          />
-          <TouchableOpacity className="bg-[#1F1F1F] p-3 rounded-xl mb-4" onPress={() => { handleLogOut(); }}>
-            <Text className="text-white text-center">Sair</Text>
+          <TouchableOpacity className="bg-red-600 p-3 rounded-xl mb-4" onPress={handleLogOut}>
+            <Text className="text-white text-center font-semibold">Sair da conta</Text>
           </TouchableOpacity>
 
           {/* Botão Salvar */}
