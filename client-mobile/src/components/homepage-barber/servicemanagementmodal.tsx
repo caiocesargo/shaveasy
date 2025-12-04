@@ -82,7 +82,7 @@ export default function ServiceManagementModal({ visible, onClose }: ServiceMana
               </View>
             ))
             ) : (
-              <View className="bg-zinc-800/50 rounded-2xl p-8 border border-zinc-700/50 items-center my-4">
+              <View className="bg-zinc-800 rounded-2xl p-8 border border-zinc-700 items-center my-4">
                 <Text className="text-4xl mb-3">✂️</Text>
                 <Text className="text-white text-lg font-semibold mb-2">
                   Nenhum serviço cadastrado

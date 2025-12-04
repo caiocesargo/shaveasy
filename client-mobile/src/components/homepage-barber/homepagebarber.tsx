@@ -41,15 +41,15 @@ export default function BarberHome() {
               className="bg-[#1F1F1F] rounded-xl p-4 mb-3 border border-[#FFA62B]"
               onPress={() => router.push(`/agendamento/${item.id}`)}
             >
-              <Text className="text-[#FFA62B] font-bold text-lg">{item.cliente}</Text>
-              <Text className="text-gray-300">{item.horario}</Text>
-              <Text className="text-gray-300">{item.servico}</Text>
+              <Text className="text-[#FFA62B] font-bold text-lg">{item.cliente?.nome || 'Cliente'}</Text>
+              <Text className="text-gray-300">{new Date(item.dataHora).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+              <Text className="text-gray-300">{item.servico?.nome || 'Serviço'}</Text>
               <Text
                 className={`font-bold mt-1 ${
-                  item.status === "Confirmado" ? "text-green-400" : "text-red-500"
+                  item.status === "confirmado" ? "text-green-400" : "text-red-500"
                 }`}
               >
-                {item.status}
+                {item.status === "confirmado" ? "Confirmado" : item.status}
               </Text>
             </TouchableOpacity>
           )}
