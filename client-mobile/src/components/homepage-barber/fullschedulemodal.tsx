@@ -1,63 +1,101 @@
 import React from "react";
-import { Modal, View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { Calendar } from "lucide-react-native";
+import { useAuth, useAgendamentos } from "../../hooks";
 
 type FullScheduleModalProps = {
   visible: boolean;
   onClose: () => void;
 };
 
-const weeklySchedule = [
-  { id: "1", client: "Dionésio Batalha", time: "Seg • 09:00", status: "confirmado" },
-  { id: "2", client: "Richardson Tiburcio", time: "Ter • 10:30", status: "cancelado" },
-  { id: "3", client: "Clóvis Rocha", time: "Qua • 13:00", status: "confirmado" },
-  { id: "4", client: "Pablo Henrique", time: "Qui • 15:30", status: "cancelado" },
-  { id: "5", client: "Lucas Silva", time: "Sex • 11:00", status: "confirmado" },
-  { id: "6", client: "Mateus Oliveira", time: "Sáb • 14:00", status: "cancelado" },
-  { id: "7", client: "Felipe Costa", time: "Dom • 16:30", status: "confirmado" },
-];
-
 export default function FullScheduleModal({ visible, onClose }: FullScheduleModalProps) {
+  const { data: authData } = useAuth();
+  const { agendamentos } = useAgendamentos(authData?.token || null);
+
   if (!visible) return null;
 
+  const todosAgendamentos = agendamentos.data || [];
+
   return (
-    <Modal visible={visible} animationType="slide" transparent>
-      <View className="flex-1 bg-black/40 justify-center items-center">
-        <View className="w-11/12 bg-zinc-900 rounded-xl p-5">
+    <View className="absolute inset-0 bg-black/50 justify-center items-center p-4">
+      <View className="bg-zinc-900 w-full rounded-2xl p-5 max-h-[85%]">
 
-          <Text className="text-xl font-bold text-[#FFA62B] mb-4 text-center">
-            Agenda Completa da Semana
-          </Text>
+        <Text className="text-2xl font-bold text-[#FFA62B] mb-4 text-center">
+          Agenda Completa
+        </Text>
 
-          <ScrollView className="max-h-[70%]">
-            {weeklySchedule.map((item) => (
-              <View
-                key={item.id}
-                className="p-4 rounded-lg mb-3 bg-zinc-800 border border-[#FFA62B]"
-              >
-                <Text className="text-[#FFA62B] font-bold text-lg">{item.client}</Text>
-                <Text className="text-gray-300">{item.time}</Text>
-
-                <Text
-                  className={`mt-2 font-bold ${
-                    item.status === "confirmado" ? "text-green-400" : "text-red-500"
-                  }`}
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {todosAgendamentos.length > 0 ? (
+            todosAgendamentos.map((item: {
+              id: string;
+              dataHora: string;
+              status: string;
+              cliente?: { nome: string };
+              servico?: { nome: string };
+            }) => {
+              const dataAgendamento = new Date(item.dataHora);
+              return (
+                <View
+                  key={item.id}
+                  className="bg-zinc-800 rounded-xl p-4 mb-3 border border-zinc-700"
                 >
-                  {item.status === "confirmado" ? "Confirmado" : "Cancelado"}
-                </Text>
+                  <View className="flex-row justify-between items-start">
+                    <View className="flex-1">
+                      <Text className="text-white font-semibold text-lg">
+                        {item.cliente?.nome || 'Cliente'}
+                      </Text>
+                      <Text className="text-[#FFA62B] font-medium mt-1">
+                        {item.servico?.nome || 'Serviço'}
+                      </Text>
+                      <View className="flex-row items-center mt-2">
+                        <View className="bg-zinc-700 px-2 py-1 rounded-lg mr-2">
+                          <Text className="text-zinc-300 text-sm">
+                            {dataAgendamento.toLocaleDateString()}
+                          </Text>
+                        </View>
+                        <View className="px-2 py-1 rounded-lg">
+                          <Text className="text-[#FFA62B] text-sm font-medium">
+                            {dataAgendamento.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                    <View className={`px-3 py-1 rounded-full ${
+                      item.status === "confirmado" ? "bg-green-300" : "bg-red-300"
+                    }`}>
+                      <Text className={`text-xs font-semibold ${
+                        item.status === "confirmado" ? "text-green-800" : "text-red-800"
+                      }`}>
+                        {item.status === "confirmado" ? "Confirmado" : "Cancelado"}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              );
+            })
+          ) : (
+            <View className="bg-zinc-800 rounded-2xl p-8 border border-zinc-700 items-center my-4">
+              <View className="bg-zinc-700 p-4 rounded-full mb-4">
+                <Calendar color="#FFA62B" size={32} />
               </View>
-            ))}
-          </ScrollView>
+              <Text className="text-white text-lg font-semibold mb-2">
+                Nenhum agendamento
+              </Text>
+              <Text className="text-zinc-400 text-center">
+                Você não possui agendamentos no momento.
+              </Text>
+            </View>
+          )}
+        </ScrollView>
 
-          {/* Botão fechar */}
-          <TouchableOpacity
-            onPress={onClose}
-            className="mt-4 bg-[#FFA62B] p-3 rounded-lg items-center"
-          >
-            <Text className="text-black font-semibold">Fechar</Text>
-          </TouchableOpacity>
+        <TouchableOpacity
+          onPress={onClose}
+          className="bg-zinc-700 p-3 rounded-xl mt-4"
+        >
+          <Text className="text-center text-white text-lg font-bold">Fechar</Text>
+        </TouchableOpacity>
 
-        </View>
       </View>
-    </Modal>
+    </View>
   );
 }
