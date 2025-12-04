@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { useRouter } from "expo-router";
-import { EyeOff, Eye } from "lucide-react-native";
+import { EyeOff, Eye, ArrowLeft } from "lucide-react-native";
 import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import { validateEmail } from "../../utils/valideEmail";
 import { validatePassword } from "../../utils/validePassword";
+import api from "../../services/api";
+import { storage } from "../../utils/storage";
 
 export default function LoginBarbeiro() {
   const router = useRouter();
@@ -18,22 +20,40 @@ const isLoginDisabled = !valid || !validPassword || email.trim() === "" || senha
 
 
 const handlePressLogin = async () => {
-  if (isLoginDisabled) return;
+    if (isLoginDisabled) return;
 
-  try {
-    if (!valid || !validPassword) {
-      setError("Credenciais inválidas");
-    } else {
-      router.push("/barbeiro/home");
+    try {
+      const response = await api.post('/auth/login', {
+        email,
+        password: senha
+      });
+
+      const { token, user } = response.data;
+
+      await storage.setItem('token', token);
+      await storage.setItem('user', JSON.stringify(user));
+
+      router.push("/homepagebarber");
+    } catch (err: any) {
+      if (err.response && err.response.data && err.response.data.error) {
+        setError(err.response.data.error);
+      } else {
+        setError("Erro ao fazer login");
+      }
+      /* eslint-disable-next-line no-console */
+      console.log("Erro na requisição", err);
     }
-  } catch (err) {
-    setError("Erro ao fazer login");
-    console.log("Erro na requisição", err);
-  }
-};
+  };
 
   return (
     <View className="flex-1 bg-zinc-900">
+      <TouchableOpacity
+        className="absolute top-6 left-4 p-2"
+        onPress={() => router.back()}
+        accessibilityRole="button"
+      >
+        <ArrowLeft size={28} color="#E8B923" />
+      </TouchableOpacity>
       <View className="absolute inset-0 items-center justify-center">
         <Text className="text-4xl font-bold text-[#E8B923] mb-8 text-center">
           Bem-vindo, Barbeiro!
@@ -72,6 +92,7 @@ const handlePressLogin = async () => {
             )}
           </TouchableOpacity>
         </View>
+        {error !== "" && <Text className="text-red-500 mb-4">{error}</Text>}
         <TouchableOpacity
           className={`px-4 py-4 rounded-lg shadow-md ${
             isLoginDisabled ? "bg-[#E8B923]" : "bg-[#E8B923]"

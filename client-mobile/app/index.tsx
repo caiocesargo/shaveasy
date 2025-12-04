@@ -1,10 +1,24 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "expo-router";
 import { View, Text, TouchableOpacity} from "react-native";
 import Background  from "../src/assets";
+import { authUtils } from "../src/utils/auth";
 
 const App: React.FC = () => {
   const router = useRouter();
+
+  useEffect(() => {
+    const checkAuthToken = async () => {
+      const authData = await authUtils.getAuthenticatedUser();
+      
+      if (authData) {
+        const homeRoute = authUtils.getHomeRouteForUserType(authData.user.tipo);
+        router.replace(homeRoute);
+      }
+    };
+
+    checkAuthToken();
+  }, [router]);
   return (
     <View className="flex-1 bg-zinc-950">
       <Background />

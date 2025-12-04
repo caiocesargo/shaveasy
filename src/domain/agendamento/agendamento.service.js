@@ -115,6 +115,28 @@ class AgendamentoService {
         });
         return agendamentos;
     }
+    /**
+     * Lista agendamentos confirmados para uma barbearia específica.
+     * (Estória: "Visualização de Agendamentos (Barbearia)")
+     */
+
+    async listarAgendamentosConfirmados(barbeariaId) {
+        const agendamentos = await prisma.agendamento.findMany({
+            where: {
+                barbeariaId: barbeariaId,
+                status: 'confirmado'
+            },
+            include: {
+                cliente: { select: { nome: true, telefone: true } },
+                barbeiro: { select: { nome: true } },
+                servico: { select: { nome: true } }
+            },
+            orderBy: {
+                dataHora: 'asc' 
+            }
+        });
+        return agendamentos;
+    }
 
 
     // =======================================================

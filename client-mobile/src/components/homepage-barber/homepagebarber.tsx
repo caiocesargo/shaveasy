@@ -6,19 +6,12 @@ import ServiceManagementModal from "./servicemanagementmodal";
 import  ClientsModal from "./clientsmodal";
 import ProfileSettingsModal from "./profilesettingsmodal";
 
-
-
-
-
 export default function BarberHome() {
   const router = useRouter();
   const [openAgenda, setOpenAgenda] = useState(false);
   const [openServices, setOpenServices] = useState(false);
   const [openClients, setOpenClients] = useState(false);
   const [openProfile, setOpenProfile] = useState(false);
-
-
-
 
   const agendamentos = [
     { id: "1", cliente: "Dionésio Batalha", horario: "09:00", servico: "Corte de cabelo", status: "Confirmado" },
@@ -109,11 +102,9 @@ export default function BarberHome() {
       </ScrollView>
 
       <FullScheduleModal visible={openAgenda} onClose={() => setOpenAgenda(false)} />
-        <ServiceManagementModal
-  visible={openServices}onClose={() => setOpenServices(false)}/>
-  <ClientsModal visible={openClients} onClose={() => setOpenClients(false)} />
-  <ProfileSettingsModal visible={openProfile} onClose={() => setOpenProfile(false)} /> 
-    </View>
-    
+        <ServiceManagementModal visible={openServices}onClose={() => setOpenServices(false)}/>
+        <ClientsModal visible={openClients} onClose={() => setOpenClients(false)} />
+        <ProfileSettingsModal visible={openProfile} onClose={() => setOpenProfile(false)} /> 
+  </View>
   );
 }

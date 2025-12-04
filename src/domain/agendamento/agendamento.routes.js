@@ -30,6 +30,11 @@ router.get(
     agendamentoController.listarServicos
 );
 
+router.get(
+    '/confirmados/barbearia/:barbeariaId', 
+    verifyJWT,
+    agendamentoController.listarAgendamentosConfirmados // <-- Estória: Visualização de Agendamentos (Barbearia)
+);
 
 // --- ROTAS DE GESTÃO (ADMIN/BARBEIRO) ---
 

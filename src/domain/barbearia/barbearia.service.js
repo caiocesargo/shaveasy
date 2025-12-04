@@ -18,7 +18,7 @@ class BarbeariaService {
             const donoAtualizado = await tx.usuario.update({
                 where: { id: userIdDono },
                 data: {
-                    tipo: 'admin',
+                    tipo: 'barbeiro',
                     barbeariaId: novaBarbearia.id
                 },
                 select: {
