@@ -94,7 +94,7 @@ const handlePressLogin = async () => {
         </View>
         {error !== "" && <Text className="text-red-500 mb-4">{error}</Text>}
         <TouchableOpacity
-          className={`px-4 py-4 rounded-lg shadow-md ${
+          className={`px-4 py-4 rounded-lg ${
             isLoginDisabled ? "bg-[#E8B923]" : "bg-[#E8B923]"
           }`}
           disabled={isLoginDisabled}

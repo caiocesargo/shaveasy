@@ -47,6 +47,7 @@ class AgendamentoController {
     async create(req, res) { 
         const { userId: clienteId } = req.user; 
         const { servicoId, barbeiroId, dataHora } = req.body;
+        console.log('Dados recebidos para agendamento:', req.body);
 
         if (!servicoId || !barbeiroId || !dataHora) {
             return res.status(400).json({ error: 'Serviço, barbeiro e data/hora são obrigatórios.' });
@@ -66,6 +67,9 @@ class AgendamentoController {
             }
             if (error.message.includes('Serviço não encontrado')) {
                 return res.status(404).json({ error: error.message }); 
+            }
+            if (error.message.includes('no passado')) {
+                return res.status(400).json({ error: error.message }); 
             }
             console.error('Erro ao criar agendamento:', error);
             return res.status(500).json({ error: 'Erro interno no servidor.' });
@@ -104,8 +108,37 @@ class AgendamentoController {
         }
     }
 
+    async listarAgendamentosConfirmados(req, res) {
+        try {
+            const { barbeariaId } = req.params; 
+
+            if (!barbeariaId) {
+                return res.status(400).json({ error: 'O ID da barbearia é obrigatório na URL.' });
+            }
+            
+            const agendamentos = await AgendamentoService.listarAgendamentosConfirmados(barbeariaId);
+            return res.status(200).json(agendamentos);
+
+        } catch (error) {
+            console.error('Erro ao listar agendamentos confirmados:', error);
+            return res.status(500).json({ error: 'Erro interno ao buscar agendamentos.' });
+        }
+    }
+    async listarMeusAgendamentos(req, res) {
+        try {
+            const { userId } = req.user; 
+
+            const agendamentos = await AgendamentoService.listarMeusAgendamentos(userId);
+            return res.status(200).json(agendamentos);
+
+        } catch (error) {
+            console.error('Erro ao listar meus agendamentos:', error);
+            return res.status(500).json({ error: 'Erro interno ao buscar agendamentos.' });
+        }
+    }
+
     // --- ROTA DE AGENDAMENTO (CANCELAR - UPDATE) ---
-    async cancelarAgendamento(req, res) { // <-- NOVO MÉTODO
+    async cancelarAgendamento(req, res) {
         const { id: agendamentoId } = req.params;
         const { userId, barbeariaId, tipo } = req.user; 
 

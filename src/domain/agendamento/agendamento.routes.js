@@ -36,6 +36,11 @@ router.get(
     agendamentoController.listarAgendamentosConfirmados // <-- Estória: Visualização de Agendamentos (Barbearia)
 );
 
+router.get(
+    '/meus-agendamentos', 
+    verifyJWT,
+    agendamentoController.listarMeusAgendamentos // <-- Estória 8: Agenda do Barbeiro (Visualização Própria)
+);
 // --- ROTAS DE GESTÃO (ADMIN/BARBEIRO) ---
 
 // [R]EAD (ADMIN/BARBEIRO): Lista a agenda da barbearia. Rota completa: GET /agendamento/agenda

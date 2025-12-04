@@ -5,6 +5,7 @@ import express, { Router } from 'express';
 import cors from 'cors'; 
 import authRoutes from './domain/auth/auth.routes.js'; //  IMPORTA SUAS ROTAS
 import barbeariaRoutes from './domain/barbearia/barbearia.routes.js';
+import agendamentoRoutes from './domain/agendamento/agendamento.routes.js';
 
 const app = express();
 const router = Router();
@@ -16,6 +17,7 @@ app.use(express.json()); // Permite que o Express leia JSON no body
 // Rotas
 app.use('/auth', authRoutes); // CONECTA SUAS ROTAS (ex: /auth/register)
 app.use('/barbearias', barbeariaRoutes);
+app.use('/agendamento', agendamentoRoutes);
 router.route('/').get((_, res) => {
   res.status(200).send('Bem vindo a shaveasy API!');
 });

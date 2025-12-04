@@ -4,7 +4,6 @@ class BarbeariaService {
 
     async criar(dadosBarbearia, userIdDono) {
         const resultado = await prisma.$transaction(async (tx) => {
-
             // 1. Criar a Barbearia
             const novaBarbearia = await tx.barbearia.create({
                 data: {
@@ -36,6 +35,7 @@ class BarbeariaService {
         const barbearia = await prisma.barbearia.findFirst({
             include: {
                 servicos: true,
+                usuarios: true,
             }
         });
         return barbearia;

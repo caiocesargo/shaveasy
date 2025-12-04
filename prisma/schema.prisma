@@ -106,7 +106,7 @@ model Agendamento {
   cliente     Usuario  @relation("AgendamentosDoCliente", fields: [clienteId], references: [id], onDelete: Cascade)
   clienteId   String
   
-  babeiro Usuario  @relation("AgendamentosDoTrabalhador", fields: [barbeiroId], references: [id], onDelete: Cascade)
+  barbeiro Usuario  @relation("AgendamentosDoTrabalhador", fields: [barbeiroId], references: [id], onDelete: Cascade)
   barbeiroId String
 
   servico     Servico  @relation(fields: [servicoId], references: [id], onDelete: Cascade)
