@@ -37,6 +37,23 @@ class AgendamentoService {
         });
         return servicos;
     }
+    async listarMeusAgendamentos(clienteId) {
+        const agendamentos = await prisma.agendamento.findMany({
+            where: {
+                clienteId: clienteId,
+            },
+            include: {
+                cliente: { select: { nome: true, telefone: true } },
+                servico: { select: { nome: true } },
+                barbearia: { select: { nome: true } },
+                barbeiro: { select: { nome: true } },
+            },
+            orderBy: {
+                dataHora: 'desc' 
+            }
+        });
+        return agendamentos;
+    }
 
     // =======================================================
     // || Agendamento e Anti-Double Booking (Concluído) ||
@@ -64,6 +81,11 @@ class AgendamentoService {
         const dataHoraInicio = new Date(dataHora);
         const dataHoraFim = new Date(dataHoraInicio.getTime() + servico.duracao_min * 60000); 
 
+        // Verificar se a data/hora está no passado
+        if (dataHoraInicio <= new Date()) {
+            throw new Error('Não é possível agendar para uma data/hora no passado.');
+        }
+
         // 2. LÓGICA ANTI-DOUBLE BOOKING
         const conflitos = await prisma.agendamento.findMany({
             where: {
@@ -87,8 +109,8 @@ class AgendamentoService {
                 status: 'confirmado',     
                 cliente: { connect: { id: clienteId } },
                 barbearia: { connect: { id: barbeariaIdCorreto } }, 
-                barbeiro: { connect: { id: barbeiroId } },
                 servico: { connect: { id: servicoId } },
+                barbeiro: { connect: { id: barbeiroId } },
             }
         });
 
@@ -111,6 +133,28 @@ class AgendamentoService {
             },
             orderBy: {
                 dataHora: 'desc' 
+            }
+        });
+        return agendamentos;
+    }
+    /**
+     * Lista agendamentos confirmados para uma barbearia específica.
+     * (Estória: "Visualização de Agendamentos (Barbearia)")
+     */
+
+    async listarAgendamentosConfirmados(barbeariaId) {
+        const agendamentos = await prisma.agendamento.findMany({
+            where: {
+                barbeariaId: barbeariaId,
+                status: 'confirmado'
+            },
+            include: {
+                cliente: { select: { nome: true, telefone: true } },
+                barbeiro: { select: { nome: true } },
+                servico: { select: { nome: true } }
+            },
+            orderBy: {
+                dataHora: 'asc' 
             }
         });
         return agendamentos;

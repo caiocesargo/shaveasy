@@ -11,4 +11,10 @@ router.post(
     barbeariaController.criarBarbearia
 );
 
+router.get(
+    '/',
+    verifyJWT,
+    barbeariaController.getBarbearia
+);
+
 export default router;

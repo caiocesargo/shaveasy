@@ -31,7 +31,8 @@ const ModalRegister: React.FC = () => {
                     nome: name,
                     email,
                     password,
-                    telefone
+                    telefone,
+                    tipo: 'cliente'
                 });
                 router.replace("/login-client");
             }

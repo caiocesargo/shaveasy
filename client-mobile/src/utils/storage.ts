@@ -13,9 +13,9 @@ export const storage = {
     async getItem(key: string) {
         if (Platform.OS === 'web') {
             return localStorage.getItem(key);
-        } else {
+        } 
             return await SecureStore.getItemAsync(key);
-        }
+        
     },
 
     async removeItem(key: string) {

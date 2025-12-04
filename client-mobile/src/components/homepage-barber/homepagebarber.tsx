@@ -1,14 +1,11 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView, FlatList } from "react-native";
 import  {useRouter}  from "expo-router";
+import { useAuth, useAgendamentos } from "../../hooks";
 import FullScheduleModal from "./fullschedulemodal";
 import ServiceManagementModal from "./servicemanagementmodal";
 import  ClientsModal from "./clientsmodal";
 import ProfileSettingsModal from "./profilesettingsmodal";
-
-
-
-
 
 export default function BarberHome() {
   const router = useRouter();
@@ -17,14 +14,8 @@ export default function BarberHome() {
   const [openClients, setOpenClients] = useState(false);
   const [openProfile, setOpenProfile] = useState(false);
 
-
-
-
-  const agendamentos = [
-    { id: "1", cliente: "Dionésio Batalha", horario: "09:00", servico: "Corte de cabelo", status: "Confirmado" },
-    { id: "2", cliente: "Richardson Tiburcio", horario: "10:30", servico: "Barba completa", status: "Cancelado" },
-    { id: "3", cliente: "Clóvis Rocha", horario: "13:00", servico: "Corte + Barba", status: "Confirmado" },
-  ];
+  const { data: authData } = useAuth();
+  const { agendamentos } = useAgendamentos(authData?.token || null);
 
   return (
     <View className="flex-1 bg-zinc-950">
@@ -43,7 +34,7 @@ export default function BarberHome() {
         </Text>
 
         <FlatList
-          data={agendamentos}
+          data={agendamentos.data || []}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <TouchableOpacity
@@ -109,11 +100,9 @@ export default function BarberHome() {
       </ScrollView>
 
       <FullScheduleModal visible={openAgenda} onClose={() => setOpenAgenda(false)} />
-        <ServiceManagementModal
-  visible={openServices}onClose={() => setOpenServices(false)}/>
-  <ClientsModal visible={openClients} onClose={() => setOpenClients(false)} />
-  <ProfileSettingsModal visible={openProfile} onClose={() => setOpenProfile(false)} /> 
-    </View>
-    
+      <ServiceManagementModal visible={openServices}onClose={() => setOpenServices(false)}/>
+      <ClientsModal visible={openClients} onClose={() => setOpenClients(false)} agendamentos={agendamentos.data || []} />
+      <ProfileSettingsModal visible={openProfile} onClose={() => setOpenProfile(false)} /> 
+  </View>
   );
 }

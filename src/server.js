@@ -1,34 +1,32 @@
 // src/server.js
 import 'dotenv/config'; // Carrega o .env
-import express from 'express';
+import express, { Router } from 'express';
+
 import cors from 'cors'; 
-
-// Importar as rotas (VERSÃO CORRIGIDA)
-import authRoutes from './domain/auth/auth.routes.js'; // Rotas do João
-import barbeariaRoutes from './domain/barbearia/barbearia.routes.js'; // Rotas do João
-import agendamentoRoutes from './domain/agendamento/agendamento.routes.js'; // <-- Suas rotas (Neto)
-
-// Importações de rotas do CRUD de Serviços e Barbeiros (NETO)
-import servicoRoutes from './domain/servico/servico.routes.js';
-import barbeiroRoutes from './domain/barbeiro/barbeiro.routes.js';
+import authRoutes from './domain/auth/auth.routes.js'; //  IMPORTA SUAS ROTAS
+import barbeariaRoutes from './domain/barbearia/barbearia.routes.js';
+import agendamentoRoutes from './domain/agendamento/agendamento.routes.js';
 
 const app = express();
+const router = Router();
 
 // Middlewares Globais
 app.use(cors()); 
 app.use(express.json()); // Permite que o Express leia JSON no body
 
-// Rotas (VERSÃO CORRIGIDA)
-app.use('/auth', authRoutes); // Rotas do João
-app.use('/barbearias', barbeariaRoutes); // Rotas do João
-app.use('/agendamento', agendamentoRoutes); // <-- Suas rotas (Neto)
+// Rotas
+app.use('/auth', authRoutes); // CONECTA SUAS ROTAS (ex: /auth/register)
+app.use('/barbearias', barbeariaRoutes);
+app.use('/agendamento', agendamentoRoutes);
+router.route('/').get((_, res) => {
+  res.status(200).send('Bem vindo a shaveasy API!');
+});
 
-// Rotas do CRUD (NETO)
-app.use('/servicos', servicoRoutes);
-app.use('/barbeiros', barbeiroRoutes);
+// Conecte o router ao app
+app.use('/', router);
 
 // Iniciar o Servidor
 const PORT = process.env.PORT || 3333;
 app.listen(PORT, () => {
-    console.log(`🚀 Servidor rodando na porta ${PORT}`);
+  console.log(`🚀 Server ready at http://localhost:${process.env.SERVER_PORT || 3333}`);
 });

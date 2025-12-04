@@ -1,234 +1,269 @@
-import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  Modal,
-} from "react-native";
-import { useRouter } from "expo-router";
-import { storage } from "../../utils/storage";
-import api from "../../services/api";
+"use client";
 
-interface Service {
-  id: number;
-  nome: string;
-  preco: number;
-  duracao: number;
-}
+import React, { useState } from "react";
+import { View, Text, TouchableOpacity, ScrollView, StatusBar, Alert } from "react-native";
+import { Phone, Pin, Clock } from "lucide-react-native";
+import { useRouter } from "expo-router";
+import { useAuth, useBarbearia, useDisponibilidade, useAgendamentos } from "../../hooks";
+import AgendamentoModal from './agendamentoModal';
+import { authUtils } from "../../utils/auth";
+
 
 export default function HomePage() {
   const router = useRouter();
 
   const [isModalVisible, setModalVisible] = useState(false);
   const [selectedService, setSelectedService] = useState<string | null>(null);
-
-  const [selectedDate] = useState("2025-11-20");
+  const [selectedDate] = useState(
+    new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000)
+      .toISOString()
+      .split("T")[0]
+  );
   const [selectedHorario, setSelectedHorario] = useState<string | null>(null);
-  const [horariosOcupados, setHorariosOcupados] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const handleLogOut = () => {
+    authUtils.logout();
+    router.replace("/");
+  }
 
-  const horariosPossiveis = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
-  const [services, setServices] = useState<Service[]>([]);
-  const [loading, setLoading] = useState(true);
+  
+  const { data: authData } = useAuth();
+  
+  const { data: barbeariaData } = useBarbearia({ 
+    token: authData?.token || null 
+  });  
 
-  // ID da barbearia fixo por enquanto (ou pegar do contexto/seleção anterior)
-  const barbeiroId = 123; // Esse ID provavelmente deveria vir da seleção de barbearia ou do agendamento
-  // Mas para listar serviços, precisamos do ID da Barbearia.
-  // Vamos assumir um ID de barbearia fixo para teste ou pegar do primeiro da lista
-  const [barbeariaIdSelecionada, setBarbeariaIdSelecionada] = useState<number | null>(null);
+  const barbeiroId = barbeariaData?.barbearia?.usuarios[0]?.id || 0;
+  
+  const { horariosOcupados } = useDisponibilidade({
+    barbeiroId,
+    selectedDate,
+    token: authData?.token || null,
+  });
 
+  const { agendarServico } = useAgendamentos(authData?.token || null);
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        const token = await storage.getItem('token');
-        if (!token) {
-          router.replace('/login-client');
-          return;
-        }
+  // Redirecionamento simples
+  if (!authData) {
+    router.replace("/");
+    return null;
+  }
 
-        // 1. Buscar Barbearias (para pegar o ID da primeira e listar serviços)
-        // Se já tivermos o ID, pulamos essa parte.
-        const responseBarbearias = await api.get('/barbearias', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-
-        if (responseBarbearias.data.length > 0) {
-          const idBarbearia = responseBarbearias.data[0].id;
-          setBarbeariaIdSelecionada(idBarbearia);
-
-          // 2. Buscar Serviços da Barbearia
-          const responseServicos = await api.get(`/agendamento/servicos/barbearia/${idBarbearia}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          setServices(responseServicos.data);
-        }
-
-      } catch (error) {
-        console.error("Erro ao carregar dados", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadData();
-  }, []);
+  const barbearia = barbeariaData?.barbearia;
+  
+  interface ApiService {
+    id: string;
+    nome: string;
+    preco: number;
+    duracao_min: number;
+    barbeariaId: string;
+  }
+  
+  interface Service {
+    id: string;
+    nome: string;
+    preco: string;
+    duracao: string;
+  }
+  
+  const services: Service[] = barbearia?.servicos?.map((service: ApiService) => ({
+    id: service.id,
+    nome: service.nome,
+    preco: service.preco.toString(),
+    duracao: service.duracao_min.toString(),
+  })) || [];
 
   const handleSchedule = (serviceName: string) => {
     setSelectedService(serviceName);
     setModalVisible(true);
   };
 
-  const fetchDisponibilidade = async () => {
-    try {
-      const token = await storage.getItem('token');
-      const response = await api.get(
-        `/agendamento/disponibilidade?barbeiroId=${barbeiroId}&data=${selectedDate}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+  const handleConfirmAgendamento = async () => {
+    if (!selectedHorario || !selectedService || !authData?.token) return;
 
-      const data = response.data;
-
-      const horasFormatadas = data.map((isoString: string) => {
-        const date = new Date(isoString);
-        return date.toISOString().substring(11, 16);
-      });
-
-      setHorariosOcupados(horasFormatadas);
-    } catch (error) {
-      console.error("Erro ao buscar disponibilidade", error);
-    }
-  };
-
-  useEffect(() => {
-    if (selectedDate && barbeiroId) fetchDisponibilidade();
-  }, [selectedDate, barbeiroId]);
-
-  const handleConfirmAgendamento = () => {
-    if (!selectedHorario) {
-      alert("Selecione um horário antes!");
+    const service = services.find(s => s.nome === selectedService);
+    if (!service) {
+      Alert.alert('Erro', 'Serviço não encontrado.');
       return;
     }
 
-    console.log(`Agendado: ${selectedService} às ${selectedHorario}`);
-    setModalVisible(false);
+    const dataHora = `${selectedDate}T${selectedHorario}:00`;
 
+    setIsLoading(true);
+    try {
+      await agendarServico(
+        service.id,
+        barbeiroId,
+        dataHora,
+        authData.token
+      );
+
+      Alert.alert('Sucesso', 'Agendamento criado com sucesso!', [
+        { text: 'OK', onPress: () => {
+          setModalVisible(false);
+          setSelectedHorario(null);
+          setSelectedService(null);
+          router.push('/agendamentosclient');
+        }}
+      ]);
+    } catch (error) {
+      const err = error as Error;
+      Alert.alert('Erro', err.message || 'Erro ao criar agendamento.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <View className="flex-1 bg-zinc-950">
-      <View className="flex-row justify-between items-center px-6 py-4 bg-zinc-900 border-b border-zinc-800">
-        <Text className="text-[#FFA62B] text-lg font-semibold">Barbearia Shaveasy</Text>
-        <View className="flex-row space-x-6">
-          <TouchableOpacity>
-            <Text className="text-[#FFA62B] font-medium">Início</Text>
+    <View className="flex-1 bg-zinc-900">
+      <StatusBar barStyle="light-content" backgroundColor="#09090b" />
+      
+      {/* Header com gradiente e sombra */}
+      <View className="px-6 pt-14 pb-6 bg-zinc-800">
+        <View className="flex-row justify-between items-center mb-4">
+          <View>
+            <Text className="text-zinc-400 text-sm">Bem-vindo à</Text>
+            <Text className="text-[#FFA62B] text-2xl font-bold">
+              {barbearia?.nome || "Shaveasy"}
+            </Text>
+          </View>
+        </View>
+
+        {/* Navigation */}
+        <View className="flex-row justify-center space-x-8 mt-4 gap-2">
+          <TouchableOpacity className="bg-[#FFA62B] px-6 py-3 rounded-full">
+            <Text className="text-black font-semibold">Início</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push("/agendamentosclient")}>
-            <Text className="text-[#FFA62B] font-medium">Meus Agendamentos</Text>
+
+          <TouchableOpacity 
+            onPress={() => router.push("/agendamentosclient")}
+            className="bg-zinc-700 px-6 py-3 rounded-full border border-zinc-600"
+          >
+            <Text className="text-[#FFA62B] font-medium">Agendamentos</Text>
+          </TouchableOpacity>
+           <TouchableOpacity 
+            onPress={() => handleLogOut()}
+            className="bg-zinc-700 px-6 py-3 rounded-full border border-zinc-600"
+          >
+            <Text className="text-[#FFA62B] font-medium">
+              Sair
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      <ScrollView
-        contentContainerStyle={{ paddingBottom: 40 }}
-        className="px-6 pt-6"
-        showsVerticalScrollIndicator={false}
-      >
-        <View className="mb-6">
-          <Text className="text-2xl font-semibold text-[#FFA62B] mb-2">
-            Barbearia Shaveasy
-          </Text>
-          <Text className="text-[#FFA62B] mb-1">
-            Rua das Flores, 123 - Centro, Olinda/PE
-          </Text>
-          <Text className="text-[#FFA62B] mb-3">
-            Funcionamento: terça à sábado, das 9h às 18h
-          </Text>
-          <Text className="text-[#FFA62B]">
-            Bem-vindo à Barbearia Shaveasy! Aqui tradição e estilo se encontram.
-          </Text>
-        </View>
+      
+      {/* Conteúdo */}
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 40 }}>
 
-        <View className="mt-4">
-          <Text className="text-[#FFA62B] text-xl font-semibold mb-4">Serviços disponíveis</Text>
-
-          {services.map((service) => (
-            <View
-              key={service.id}
-              className="flex-row justify-between items-center bg-zinc-900 rounded-2xl px-4 py-3 mb-3"
-            >
-              <View>
-                <Text className="text-[#FFA62B] text-base font-medium">
-                  {service.nome}
-                </Text>
-                <Text className="text-zinc-400 text-sm">
-                  R$ {service.preco} • {service.duracao} min
+        {/* Card de Informações da Barbearia */}
+        <View className="mx-6 mt-6 mb-8">
+          <View className="bg-zinc-800 rounded-2xl p-6 border border-zinc-700/50">
+            <View className="flex-row items-center mb-4 gap-2">
+              <Pin color="orange" />
+              <View className="flex-1">
+                <Text className="text-white text-lg font-semibold">
+                  {barbearia?.endereco || "Endereço não informado"}
                 </Text>
               </View>
-              <TouchableOpacity
-                onPress={() => handleSchedule(service.nome)}
-                className="bg-blue-500 px-4 py-2 rounded-lg"
-              >
-                <Text className="text-white font-medium">Agendar</Text>
-              </TouchableOpacity>
-            </View>
-          ))}
-        </View>
-      </ScrollView>
-
-
-      <Modal visible={isModalVisible} transparent animationType="fade">
-        <View className="flex-1 bg-black/70 justify-center items-center px-4">
-          <View className="bg-zinc-900 w-full max-w-sm p-6 rounded-xl border border-zinc-800">
-            <Text className="text-[#FFA62B] text-lg font-semibold mb-3">
-              Agendar - {selectedService}
-            </Text>
-
-            <Text className="text-zinc-400 mb-2">Selecione um horário:</Text>
-
-            <View className="flex-row flex-wrap gap-2">
-              {horariosPossiveis.map((horario) => {
-                const isOcupado = horariosOcupados.includes(horario);
-                let bgClass = "bg-zinc-800";
-                if (isOcupado) {
-                  bgClass = "bg-zinc-700 opacity-50";
-                } else if (selectedHorario === horario) {
-                  bgClass = "bg-blue-600";
-                }
-
-                return (
-                  <TouchableOpacity
-                    key={horario}
-                    disabled={isOcupado}
-                    onPress={() => setSelectedHorario(horario)}
-                    className={`px-3 py-2 rounded-lg ${bgClass}`}
-                  >
-                    <Text className={isOcupado ? "text-zinc-500" : "text-white"}>
-                      {horario} {isOcupado ? "(ocupado)" : ""}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
             </View>
 
-            <View className="flex-row justify-end mt-6 gap-3">
-              <TouchableOpacity
-                onPress={() => setModalVisible(false)}
-                className="px-4 py-2 bg-zinc-700 rounded-lg"
-              >
-                <Text className="text-white">Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleConfirmAgendamento}
-                className="px-4 py-2 bg-blue-500 rounded-lg"
-              >
-                <Text className="text-white">Confirmar</Text>
-              </TouchableOpacity>
+            <View className="flex-row items-center mb-4 gap-2">
+             <Clock color="orange" />
+              <Text className="text-zinc-200 text-base">
+                Funcionamento: Terça à Sábado, 9h - 18h
+              </Text>
+            </View>
+            <View className="flex-row items-center mb-4 gap-2">
+              <Phone color="orange" />
+              <Text className="text-zinc-200 text-base">
+                Contato: {barbearia?.telefone || "Telefone não informado"}
+              </Text>
+            </View>
+
+            <View className="bg-[#FFA62B]/10 rounded-xl p-4 mt-2">
+              <Text className="text-[#FFA62B] text-center font-medium">
+                Experiência premium em cortes e cuidados masculinos
+              </Text>
             </View>
           </View>
         </View>
-      </Modal>
+
+
+        {/* Seção de Serviços */}
+        <View className="mx-6">
+          <View className="flex-row items-center mb-6">
+            <View className="bg-[#FFA62B] w-1 h-8 rounded-full mr-3" />
+            <Text className="text-white text-2xl font-bold">
+              Nossos Serviços
+            </Text>
+          </View>
+
+          {services.length > 0 ? (
+            services.map((service: Service) => (
+              <View
+                key={service.id}
+                className="bg-zinc-800 rounded-2xl p-5 mb-4 border border-zinc-700"
+              >
+                <View className="flex-row justify-between items-center">
+                  <View className="flex-1 mr-4">
+                    <Text className="text-white text-lg font-semibold mb-1">
+                      {service.nome}
+                    </Text>
+                    <View className="flex-row items-center">
+                      <View className="bg-green-500/20 px-2 py-1 rounded-full mr-2">
+                        <Text className="text-green-400 text-sm font-medium">
+                          R$ {service.preco}
+                        </Text>
+                      </View>
+                      <View className="bg-blue-500/20 px-2 py-1 rounded-full">
+                        <Text className="text-blue-400 text-sm font-medium">
+                          {service.duracao} min
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  <TouchableOpacity
+                    onPress={() => handleSchedule(service.nome)}
+                    className="bg-orange-600 px-6 py-3 rounded-xl"
+                  >
+                    <Text className="text-black font-bold">Agendar</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))
+          ) : (
+            <View className="bg-zinc-800 rounded-2xl p-8 border border-zinc-700">
+              <View className="items-center">
+                <View className="bg-zinc-700/50 p-4 rounded-full mb-4">
+                  <Text className="text-4xl">✂️</Text>
+                </View>
+                <Text className="text-white text-lg font-semibold mb-2">
+                  Serviços em breve
+                </Text>
+                <Text className="text-zinc-400 text-center">
+                  Estamos preparando nossos melhores serviços para você. 
+                  Em breve você poderá agendar seus cortes favoritos!
+                </Text>
+              </View>
+            </View>
+          )}
+        </View>
+
+      </ScrollView>
+
+      <AgendamentoModal
+        visible={isModalVisible}
+        selectedService={selectedService}
+        selectedHorario={selectedHorario}
+        setSelectedHorario={setSelectedHorario}
+        onClose={() => setModalVisible(false)}
+        handleConfirmAgendamento={handleConfirmAgendamento}
+        isLoading={isLoading}
+        horariosOcupados={horariosOcupados}
+      />
+
     </View>
   );
 }

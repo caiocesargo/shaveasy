@@ -1,5 +1,8 @@
 import React from "react";
+import { useRouter } from "expo-router";
 import { View, Text, TouchableOpacity, TextInput, ScrollView } from "react-native";
+import { authUtils } from "../../utils/auth";
+
 
 interface ProfileSettingsModalProps {
   visible: boolean;
@@ -7,7 +10,13 @@ interface ProfileSettingsModalProps {
 }
 
 export default function ProfileSettingsModal({ visible, onClose }: ProfileSettingsModalProps) {
+  const router = useRouter();
   if (!visible) return null;
+  const handleLogOut = () => {
+    authUtils.logout();
+    onClose();
+    router.replace("/");
+  }
 
   return (
     <View className="absolute inset-0 bg-black/50 justify-center items-center p-4">
@@ -59,6 +68,9 @@ export default function ProfileSettingsModal({ visible, onClose }: ProfileSettin
             placeholderTextColor="#888"
             keyboardType="numeric"
           />
+          <TouchableOpacity className="bg-[#1F1F1F] p-3 rounded-xl mb-4" onPress={() => { handleLogOut(); }}>
+            <Text className="text-white text-center">Sair</Text>
+          </TouchableOpacity>
 
           {/* Botão Salvar */}
           <TouchableOpacity className="bg-[#FFA62B] p-4 rounded-xl mb-4">

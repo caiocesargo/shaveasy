@@ -9,6 +9,7 @@ import {
 } from "@expo-google-fonts/barlow";
 import { useCallback } from "react";
 import "../src/styles/global.css";
+import QueryClientAppProvider from "../src/providers/QueryClientApp";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -32,7 +33,9 @@ export default function Layout() {
 
   return (
     <SafeAreaProvider onLayout={onLayoutRootView}>
+      <QueryClientAppProvider>
         <Slot />
+      </QueryClientAppProvider>
     </SafeAreaProvider>
   );
 }

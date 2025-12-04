@@ -29,13 +29,10 @@ class ServicoController {
 
     // GET /servicos
     async list(req, res) {
-        const barbeariaId = req.user.barbeariaId; // ID da barbearia do Admin/Dono
-
+        const barbeariaId = req.user.barbeariaId || req.body.barbeariaId; // ID da barbearia do Admin/Dono
         if (!barbeariaId) {
-            // Se o usuário não tem barbeariaId (ex: cliente comum), ele não deve ver o catálogo
-            return res.status(403).json({ error: 'Acesso negado. Usuário sem vínculo com barbearia.' });
+            return res.status(403).json({ error: 'Você precisa ver serviços de uma barbearia' });
         }
-
         try {
             const servicos = await servicoService.list(barbeariaId);
             return res.status(200).json(servicos);

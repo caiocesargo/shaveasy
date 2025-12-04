@@ -30,6 +30,7 @@ class ServicoService {
             }
         });
     }
+    
 
     // Atualiza um serviço existente
     async update(id, data, barbeariaId) {

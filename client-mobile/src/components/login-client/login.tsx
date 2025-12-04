@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useRouter } from "expo-router";
-import { EyeOff, Eye } from "lucide-react-native";
+import { EyeOff, Eye, ArrowLeft } from "lucide-react-native";
 import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import api from "../../services/api";
 import { storage } from "../../utils/storage";
@@ -42,6 +42,13 @@ export default function Login() {
 
   return (
     <View className="flex-1 bg-zinc-950">
+      <TouchableOpacity
+        className="absolute top-6 left-4 p-2"
+        onPress={() => router.back()}
+        accessibilityRole="button"
+      >
+        <ArrowLeft size={28} color="#E8B923" />
+      </TouchableOpacity>
       <View className="absolute inset-0 items-center justify-center">
         <Text className="text-4xl font-bold text-[#FFA62B] mb-8 text-center">Olá, seja bem-vindo!</Text>
 

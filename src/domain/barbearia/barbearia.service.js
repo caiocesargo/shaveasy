@@ -3,10 +3,7 @@ import prisma from '../../config/prisma.js'; // PELA LINHA CORRETA
 class BarbeariaService {
 
     async criar(dadosBarbearia, userIdDono) {
-
-
         const resultado = await prisma.$transaction(async (tx) => {
-
             // 1. Criar a Barbearia
             const novaBarbearia = await tx.barbearia.create({
                 data: {
@@ -18,7 +15,7 @@ class BarbeariaService {
             const donoAtualizado = await tx.usuario.update({
                 where: { id: userIdDono },
                 data: {
-                    tipo: 'admin',
+                    tipo: 'barbeiro',
                     barbeariaId: novaBarbearia.id
                 },
                 select: {
@@ -33,6 +30,15 @@ class BarbeariaService {
         });
 
         return resultado;
+    }
+    async getBarbearia() {
+        const barbearia = await prisma.barbearia.findFirst({
+            include: {
+                servicos: true,
+                usuarios: true,
+            }
+        });
+        return barbearia;
     }
 }
 
