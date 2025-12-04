@@ -18,7 +18,9 @@ export default function BarberHome() {
   const { data: authData } = useAuth();
   const { agendamentos } = useAgendamentos(authData?.token || null);
 
-  const proximosAgendamentos = (agendamentos.data || [])
+  const agendamentosData = agendamentos?.data ?? [];
+
+  const proximosAgendamentos = agendamentosData
     .filter((a: { status: string }) => a.status === 'confirmado')
     .slice(0, 3);
 
@@ -171,7 +173,7 @@ export default function BarberHome() {
 
       <FullScheduleModal visible={openAgenda} onClose={() => setOpenAgenda(false)} />
       <ServiceManagementModal visible={openServices} onClose={() => setOpenServices(false)} />
-      <ClientsModal visible={openClients} onClose={() => setOpenClients(false)} agendamentos={agendamentos.data || []} />
+      <ClientsModal visible={openClients} onClose={() => setOpenClients(false)} agendamentos={agendamentosData} />
       <ProfileSettingsModal visible={openProfile} onClose={() => setOpenProfile(false)} />
     </View>
   );
