@@ -102,9 +102,9 @@ export default function BarberHome() {
       </ScrollView>
 
       <FullScheduleModal visible={openAgenda} onClose={() => setOpenAgenda(false)} />
-        <ServiceManagementModal visible={openServices}onClose={() => setOpenServices(false)}/>
-        <ClientsModal visible={openClients} onClose={() => setOpenClients(false)} />
-        <ProfileSettingsModal visible={openProfile} onClose={() => setOpenProfile(false)} /> 
+      <ServiceManagementModal visible={openServices}onClose={() => setOpenServices(false)}/>
+      <ClientsModal visible={openClients} onClose={() => setOpenClients(false)} />
+      <ProfileSettingsModal visible={openProfile} onClose={() => setOpenProfile(false)} /> 
   </View>
   );
 }
