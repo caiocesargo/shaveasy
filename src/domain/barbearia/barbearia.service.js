@@ -3,8 +3,6 @@ import prisma from '../../config/prisma.js'; // PELA LINHA CORRETA
 class BarbeariaService {
 
     async criar(dadosBarbearia, userIdDono) {
-
-
         const resultado = await prisma.$transaction(async (tx) => {
 
             // 1. Criar a Barbearia
@@ -33,6 +31,10 @@ class BarbeariaService {
         });
 
         return resultado;
+    }
+    async getBarbearia() {
+        const barbearia = await prisma.barbearia.findFirst({});
+        return barbearia;
     }
 }
 

@@ -48,7 +48,6 @@ export const authUtils = {
     try {
       await storage.removeItem('token');
       await storage.removeItem('user');
-      router.replace('/'); // Redireciona para a tela inicial após logout
     } catch (error) {
       /* eslint-disable-next-line no-console */
       console.log("Erro ao fazer logout:", error);

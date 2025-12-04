@@ -25,6 +25,15 @@ class BarbeariaController {
             return res.status(500).json({ error: 'Erro interno no servidor.' });
         }
     }
+    async getBarbearia(req, res) {
+        try {
+            const barbearia = await barbeariaService.getBarbearia();
+            return res.status(200).json(barbearia);
+        } catch (error) {
+            console.error("Erro ao buscar barbearia: ", error);
+            return res.status(500).json({ error: 'Erro interno no servidor.' });
+        }
+    }
 }
 
 export default new BarbeariaController();
