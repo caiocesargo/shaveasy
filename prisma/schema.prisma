@@ -1,0 +1,117 @@
+// prisma/schema.prisma
+
+// Define o banco de dados (PostgreSQL) e o ORM (Prisma)
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL") // Lê a URL do seu arquivo .env
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ----------------------------------------------------------------------
+// DOMÍNIO: AUTH/BARBEARIA (Foco da Pessoa 1 - João)
+// ----------------------------------------------------------------------
+
+// Tabela 1: USUARIO (Consolidada - Cliente e Barbeiro)
+model Usuario {
+  id            String   @id @default(uuid())
+  email         String   @unique // Único
+  senha_hash    String?  // Salva o hash do Bcrypt (NULL para barbeiros criados automaticamente)
+  nome          String   
+  telefone      String   
+  
+  // Tipos: 'cliente' ou 'barbeiro'
+  tipo          String   @default("cliente") 
+  
+  // Campo para barbeiros - especialidade profissional
+  especialidade String?
+  
+  // A qual barbearia este admin/barbeiro pertence
+  barbeariaId   String?   
+  barbearia     Barbearia? @relation(fields: [barbeariaId], references: [id], onDelete: SetNull)
+
+  createdAt     DateTime @default(now())
+
+  // Relações:
+  agendamentosCliente Agendamento[] @relation("AgendamentosDoCliente")
+  agendamentosBarbeiro Agendamento[] @relation("AgendamentosDoTrabalhador")
+  
+  @@map("usuarios") 
+}
+
+// Tabela 2: BARBEARIA (O Tenant - Simplificado)
+model Barbearia {
+  id          String   @id @default(uuid())
+  nome        String   
+  endereco    String   
+  telefone    String   
+  
+  // Configurações
+  tempo_min_antecedencia Int @default(60) // em minutos
+
+  // Relação 1:N (Uma barbearia tem muitos usuários admin/barbeiro)
+  usuarios     Usuario[] 
+  
+  // Relações do Neto
+  servicos     Servico[]
+  agendamentos Agendamento[]
+
+  createdAt    DateTime @default(now())
+
+  @@map("barbearias")
+}
+
+// ----------------------------------------------------------------------
+// DOMÍNIO: AGENDAMENTO (Foco do Neto)
+// ----------------------------------------------------------------------
+
+// Requisito: Gerenciamento de Serviços (Nome, Preço)
+model Servico {
+  id          String   @id @default(uuid())
+  nome        String   
+  preco       Float    
+  duracao_min Int      // Duração em minutos (Ex: 30)
+
+  // Chave do Multi-Tenancy (Obrigatório!)
+  barbearia   Barbearia @relation(fields: [barbeariaId], references: [id], onDelete: Cascade)
+  barbeariaId String
+
+  agendamentos Agendamento[]
+
+  @@map("servicos")
+}
+
+// REMOVIDO: Tabela Barbeiro - agora consolidado em Usuario
+
+// Requisito: Agendamento de Serviços
+model Agendamento {
+  id          String   @id @default(uuid())
+  dataHora    DateTime // Hora de início
+  
+  // =======================================================
+  // || CAMPO NOVO (CRÍTICO PARA ANTI-DOUBLE BOOKING) ||
+  // =======================================================
+  dataHoraFim DateTime  
+
+  // Des-scoping: Status 'pendente' removido. Agendamento é 'confirmado' direto.
+  status      String   @default("confirmado") 
+
+  // Chave do Multi-Tenancy (Obrigatório!)
+  barbearia   Barbearia @relation(fields: [barbeariaId], references: [id], onDelete: Cascade)
+  barbeariaId String
+
+  // Relações
+  cliente     Usuario  @relation("AgendamentosDoCliente", fields: [clienteId], references: [id], onDelete: Cascade)
+  clienteId   String
+  
+  barbeiro Usuario  @relation("AgendamentosDoTrabalhador", fields: [barbeiroId], references: [id], onDelete: Cascade)
+  barbeiroId String
+
+  servico     Servico  @relation(fields: [servicoId], references: [id], onDelete: Cascade)
+  servicoId   String
+
+  createdAt   DateTime @default(now())
+  @@map("agendamentos")
+}
